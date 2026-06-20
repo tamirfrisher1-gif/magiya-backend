@@ -57,24 +57,21 @@ magiya-backend/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_ORG/magiya-backend.git
+git clone https://github.com/tamirfrisher1-gif/magiya-backend.git
 cd magiya-backend
 ```
 
 ### 2. Create a virtual environment
 
 ```bash
-# Create the venv (do this once)
 python -m venv venv
 
-# Activate it — Windows
+# Windows
 venv\Scripts\activate
 
-# Activate it — macOS / Linux
+# macOS / Linux
 source venv/bin/activate
 ```
-
-> You should see `(venv)` at the start of your terminal prompt.
 
 ### 3. Install dependencies
 
@@ -92,7 +89,7 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Now open `.env` in your editor and fill in the four values:
+Now open `.env` and fill in the four values:
 
 ```env
 TELEGRAM_BOT_TOKEN=   ← From @BotFather on Telegram
@@ -101,11 +98,11 @@ SUPABASE_KEY=         ← Supabase Dashboard → Project Settings → API → an
 OPENAI_API_KEY=       ← platform.openai.com → API Keys
 ```
 
-**IMPORTANT:** `.env` is listed in `.gitignore`. It will never be committed. Never share it or paste it anywhere.
+**IMPORTANT:** `.env` is in `.gitignore` — never commit it.
 
 ### 5. Set up the database
 
-Open your Supabase project dashboard → SQL Editor, and run the following schema:
+Open Supabase → SQL Editor and run:
 
 ```sql
 create table guests (
@@ -145,25 +142,14 @@ create table seating_assignments (
 python main.py
 ```
 
-You should see:
-```
-INFO - MAGIYA bot is starting...
-```
-
-Open Telegram, find your bot, and send:
-- `/ping` → Bot replies: **"Pong! MAGIYA bot is alive 🎉"**
-- `/start` → Bot replies with a welcome message
+Send `/ping` to your bot on Telegram → expect **"Pong! MAGIYA bot is alive 🎉"**
 
 ---
 
 ## Running Tests
 
 ```bash
-# Unit tests only (no database required)
 pytest tests/test_rsvp_logic.py -v
-
-# All tests including database integration (requires .env with real Supabase credentials)
-pytest tests/ -v
 ```
 
 ---

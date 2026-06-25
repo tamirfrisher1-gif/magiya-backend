@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js" defer></script>
+  <script src="signup.js" defer></script>
 </head>
 <body>
   <!-- ===== Navigation ===== -->
@@ -102,11 +105,14 @@
       <h2 class="start__title">Let's get started.</h2>
       <p class="start__sub">Create your free account and let MAGIYA handle the guest list.</p>
 
-      <form class="signup" onsubmit="return false;">
-        <input type="text" name="name" placeholder="Couple's names" aria-label="Couple's names" required />
+      <form class="signup" id="signupForm">
+        <input type="text" name="bride" placeholder="Bride's name" aria-label="Bride's name" required />
+        <input type="text" name="groom" placeholder="Groom's name" aria-label="Groom's name" required />
         <input type="email" name="email" placeholder="Email address" aria-label="Email address" required />
-        <button type="submit" class="btn btn--primary">Sign Up Free</button>
+        <input type="date" name="date" aria-label="Wedding date" required />
+        <button type="submit" class="btn btn--primary">Let's Go →</button>
       </form>
+      <p id="signupMsg" style="color:#c98a2e;margin-top:0.75rem;min-height:1.2em;"></p>
       <p class="start__fine">No credit card. No spreadsheets. Ever.</p>
     </section>
   </main>

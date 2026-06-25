@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — Seating Arrangements</title>
+  <meta name="description" content="Define your table types and let MAGIYA seat your confirmed guests automatically — keeping groups together. Drag to adjust." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="seating.css" />
+</head>
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="bar">
+    <a href="index.html" class="bar__logo">MAGIYA</a>
+    <span class="bar__crumb">Seating Arrangements</span>
+    <a href="index.html" class="bar__back">← Home</a>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ SCREEN 1 · DEFINE TABLE TYPES ============ -->
+    <section class="screen screen--setup is-active" id="setup">
+      <span class="kicker">Step 02 · Seating</span>
+      <h1 class="setup__title">What tables do <em>you have?</em></h1>
+      <p class="setup__lead">
+        Add the kinds of tables at your venue — shape and how many it seats.
+        You don't say how many of each; MAGIYA adds as many as it needs to seat
+        every confirmed guest, keeping each group together.
+      </p>
+
+      <form class="tableform" id="tableForm">
+        <div class="field">
+          <label>Shape</label>
+          <div class="shapepick" id="shapePick">
+            <button type="button" class="shapebtn is-active" data-shape="round">● Round</button>
+            <button type="button" class="shapebtn" data-shape="rectangle">▬ Rectangle</button>
+            <button type="button" class="shapebtn" data-shape="square">■ Square</button>
+          </div>
+        </div>
+        <div class="field field--seats">
+          <label for="seatsInput">Seats</label>
+          <input id="seatsInput" type="number" min="2" max="20" value="10" />
+        </div>
+        <button type="submit" class="btn btn--primary">Add Table Type</button>
+      </form>
+
+      <div class="suggest">
+        <span class="suggest__label">Quick add:</span>
+        <button class="chip chip--ghost" data-shape="round" data-seats="10">Round · 10</button>
+        <button class="chip chip--ghost" data-shape="round" data-seats="12">Round · 12</button>
+        <button class="chip chip--ghost" data-shape="rectangle" data-seats="8">Rectangle · 8</button>
+        <button class="chip chip--ghost" data-shape="square" data-seats="4">Square · 4</button>
+      </div>
+
+      <div class="kindlist" id="kindList" aria-live="polite">
+        <p class="kindlist__empty" id="kindEmpty">No table types yet — add your first above.</p>
+      </div>
+
+      <button class="btn btn--big" id="arrangeBtn" disabled>Arrange Seating →</button>
+    </section>
+
+    <!-- ============ SCREEN 2 · ARRANGEMENT ============ -->
+    <section class="screen screen--plan" id="plan">
+      <div class="plan__head">
+        <div>
+          <h2 class="plan__title">Your seating plan</h2>
+          <p class="plan__stats" id="planStats">—</p>
+        </div>
+        <div class="plan__tools">
+          <button class="btn btn--outline" id="editBtn">Edit Table Types</button>
+          <button class="btn btn--primary" id="refreshBtn" title="Re-pull guests and re-arrange">↻ Refresh from Dashboard</button>
+        </div>
+      </div>
+
+      <div class="banner" id="dashBanner">
+        ⓘ Guests are pulled live from your <a href="dashboard.html"><strong>Live Dashboard</strong></a> —
+        only those who confirmed <strong>Coming</strong> are seated. Hit <em>Refresh from Dashboard</em> after new RSVPs to re-arrange.
+      </div>
+
+      <p class="plan__hint">Drag any guest to another table to adjust. Colours show their guest group.</p>
+
+      <div class="tables" id="tables"><!-- tables injected by JS --></div>
+
+      <div class="tray" id="tray" hidden>
+        <h3 class="tray__title">Unseated</h3>
+        <div class="tray__list" id="trayList"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="api-config.js"></script>
+  <script src="magiya-common.js"></script>
+  <script src="seating.js"></script>
+</body>
+</html>

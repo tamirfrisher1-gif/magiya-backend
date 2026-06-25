@@ -98,3 +98,27 @@ def build_dashboard(guests: list[dict], rsvps: list[dict]) -> dict:
         "by_group": by_group,
         "recent_updates": recent_updates,
     }
+
+
+def build_confirmed_guests(guests: list[dict], rsvps: list[dict]) -> list[dict]:
+    """
+    Return the list of confirmed guests for the seating page:
+    `[{name, group, party_size}]`, one entry per confirmed guest.
+
+    The frontend expands each entry into `party_size` seats so the whole
+    party is seated together.
+    """
+    rsvp_by_guest = {r.get("guest_id"): r for r in rsvps}
+    confirmed = []
+    for guest in guests:
+        rsvp = rsvp_by_guest.get(guest.get("id"))
+        if _normalize_status(rsvp) == "confirmed":
+            confirmed.append(
+                {
+                    "name": guest.get("full_name") or "—",
+                    "group": _group_name(guest),
+                    "party_size": _party_size(rsvp),
+                }
+            )
+    confirmed.sort(key=lambda g: (g["group"].lower(), g["name"].lower()))
+    return confirmed

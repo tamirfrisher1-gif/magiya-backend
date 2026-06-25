@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — Live Dashboard</title>
+  <meta name="description" content="Real-time RSVP dashboard — invited, attending, awaiting reply, group breakdown and the latest guest responses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="bar">
+    <a href="index.html" class="bar__logo">MAGIYA</a>
+    <span class="bar__crumb">Live Dashboard</span>
+    <a href="index.html" class="bar__back">← Home</a>
+  </header>
+
+  <main class="stage">
+    <div class="dash__head">
+      <div>
+        <span class="kicker">Step 04 · Live</span>
+        <h1 class="dash__title">Live Dashboard</h1>
+        <p class="dash__sub">Real-time RSVPs as your guests respond.</p>
+      </div>
+      <div class="dash__tools">
+        <button class="btn btn--outline" id="refreshBtn" title="Re-pull the latest RSVPs">↻ Refresh</button>
+        <a href="seating.html" class="btn btn--primary">Open Seating Plan →</a>
+      </div>
+    </div>
+
+    <div class="banner" id="banner">
+      ⓘ Live data from your MAGIYA API (Supabase). Your <em>Seating Plan</em> pulls its confirmed
+      guests straight from here — only guests marked <strong>Coming</strong> are seated.
+    </div>
+
+    <!-- ===== Stat cards ===== -->
+    <section class="stats" id="stats"><!-- cards injected --></section>
+
+    <!-- ===== Response progress ===== -->
+    <section class="prog">
+      <div class="prog__row">
+        <span class="prog__label">Response progress</span>
+        <span class="prog__pct" id="progPct">0%</span>
+      </div>
+      <div class="prog__bar"><div class="prog__fill" id="progFill"></div></div>
+      <p class="prog__note" id="progNote">—</p>
+    </section>
+
+    <!-- ===== Donut + groups ===== -->
+    <section class="split">
+      <div class="panel">
+        <h2 class="panel__title">RSVP breakdown</h2>
+        <div class="donutwrap">
+          <div class="donut" id="donut"><span class="donut__center" id="donutCenter">0</span></div>
+          <ul class="legend" id="legend"></ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">By group</h2>
+        <table class="gtable">
+          <thead>
+            <tr><th>Group</th><th>Invited</th><th>Confirmed</th><th>Expected</th></tr>
+          </thead>
+          <tbody id="groupRows"></tbody>
+          <tfoot id="groupFoot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Recent updates ===== -->
+    <section class="panel">
+      <h2 class="panel__title">Recent updates</h2>
+      <p class="panel__sub">The latest responses we received from your guests.</p>
+      <div class="feed" id="feed"></div>
+    </section>
+  </main>
+
+  <script src="api-config.js"></script>
+  <script src="magiya-common.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

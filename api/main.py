@@ -13,7 +13,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from database.dashboard import get_dashboard_data
+from database.dashboard import get_dashboard_data, get_confirmed_guests
 
 app = FastAPI(
     title="MAGIYA Dashboard API",
@@ -67,6 +67,12 @@ class DashboardResponse(BaseModel):
     recent_updates: list[RecentUpdate]
 
 
+class ConfirmedGuest(BaseModel):
+    name: str
+    group: str
+    party_size: int
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -79,3 +85,12 @@ def dashboard() -> dict:
         return get_dashboard_data()
     except Exception as exc:  # surface DB/connection failures as a clear 502
         raise HTTPException(status_code=502, detail=f"Failed to load dashboard data: {exc}")
+
+
+@app.get("/guests/confirmed", response_model=list[ConfirmedGuest])
+def confirmed_guests() -> list:
+    """Return confirmed guests (name, group, party_size) for the seating page."""
+    try:
+        return get_confirmed_guests()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load confirmed guests: {exc}")

@@ -4,7 +4,7 @@ Unit tests for the dashboard aggregation (pure, no DB) and the FastAPI endpoint
 """
 from fastapi.testclient import TestClient
 
-from core.dashboard import build_dashboard, UNASSIGNED_GROUP, RECENT_LIMIT
+from core.dashboard import build_dashboard, build_confirmed_guests, UNASSIGNED_GROUP, RECENT_LIMIT
 from api.main import app
 
 client = TestClient(app)
@@ -100,6 +100,21 @@ def test_unknown_status_is_pending():
     dash = build_dashboard(guests, rsvps)
     assert dash["status_breakdown"]["pending"] == 1
     assert dash["summary"]["no_response"] == 1
+
+
+# --- build_confirmed_guests ----------------------------------------------
+
+def test_confirmed_guests_only_confirmed():
+    confirmed = build_confirmed_guests(*_sample())
+    # only g1 (Alice) and g3 (Carol) are confirmed
+    names = [g["name"] for g in confirmed]
+    assert names == ["Alice", "Carol"]  # sorted by (group, name): family, friends
+    alice = next(g for g in confirmed if g["name"] == "Alice")
+    assert alice == {"name": "Alice", "group": "family", "party_size": 2}
+
+
+def test_confirmed_guests_empty():
+    assert build_confirmed_guests([], []) == []
 
 
 # --- API endpoint --------------------------------------------------------

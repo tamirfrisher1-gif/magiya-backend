@@ -41,6 +41,21 @@ Returns the full aggregated payload:
 }
 ```
 
+### `GET /guests/confirmed`
+
+Returns the confirmed guests for the **seating page**, one entry per guest:
+
+```json
+[
+  { "name": "Alice", "group": "family",  "party_size": 2 },
+  { "name": "Carol", "group": "friends", "party_size": 3 }
+]
+```
+
+- Only guests whose RSVP `status` is `confirmed` are returned.
+- Sorted by `(group, name)`. Guests with no group fall under `"Unassigned"`.
+- The frontend expands each entry into `party_size` seats so a party is seated together.
+
 ### Field notes
 - `no_response` = guests with no RSVP row **plus** RSVPs whose status is `pending`.
 - `expected_headcount` = sum of `party_size` over confirmed RSVPs.

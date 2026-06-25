@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from database.client import db
 
 
+def get_all_rsvps() -> list[dict]:
+    """Returns every rsvp row (used by the dashboard aggregation)."""
+    return db.table("rsvps").select("*").execute().data
+
+
 def get_rsvp_by_guest(guest_id: str) -> Optional[dict]:
     response = (
         db.table("rsvps")

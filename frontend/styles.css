@@ -113,6 +113,7 @@ body {
   transform: translate(-2px, -2px);
   box-shadow: 7px 7px 0 var(--ink);
 }
+.btn--lg { font-size: 1.05rem; padding: 1.15rem 2.6rem; }
 
 /* ---------- Hero ---------- */
 .hero {

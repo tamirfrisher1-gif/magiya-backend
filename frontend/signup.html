@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — Get Started</title>
+  <meta name="description" content="Create your MAGIYA wedding — bride & groom names, date and venue. Connects to your account." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="signup.css" />
+</head>
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="bar">
+    <a href="index.html" class="bar__logo">MAGIYA</a>
+    <span class="bar__crumb">Get Started</span>
+    <a href="index.html" class="bar__back">← Home</a>
+  </header>
+
+  <main class="stage">
+    <div class="card">
+      <span class="kicker">Your Perfect Day</span>
+      <h1 class="card__title">Let's set up <em>your wedding.</em></h1>
+
+      <div class="tabs">
+        <button class="tab is-active" id="tabNew" type="button">New wedding</button>
+        <button class="tab" id="tabSignin" type="button">I already have one</button>
+      </div>
+
+      <!-- ===== New wedding ===== -->
+      <form class="panel is-active" id="panelNew">
+        <div class="row">
+          <div class="field">
+            <label for="brideName">Bride's full name</label>
+            <input id="brideName" type="text" autocomplete="off" placeholder="e.g. Sarah Levi" required />
+          </div>
+          <div class="field">
+            <label for="groomName">Groom's full name</label>
+            <input id="groomName" type="text" autocomplete="off" placeholder="e.g. David Cohen" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="contactEmail">Email</label>
+          <input id="contactEmail" type="email" autocomplete="email" placeholder="you@gmail.com" required />
+          <span class="hint">We'll use this to connect your Google contacts.</span>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="weddingDate">Wedding date</label>
+            <input id="weddingDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="venue">Venue</label>
+            <input id="venue" type="text" autocomplete="off" placeholder="e.g. The Grand Garden, Tel Aviv" required />
+          </div>
+        </div>
+
+        <div class="idbox">
+          <span class="idbox__label">Your Wedding ID</span>
+          <span class="idbox__value" id="idPreview">—</span>
+        </div>
+
+        <button class="btn btn--big" id="createBtn" type="submit">Create Wedding →</button>
+        <p class="status" id="createStatus" role="status"></p>
+      </form>
+
+      <!-- ===== Sign in ===== -->
+      <form class="panel" id="panelSignin">
+        <div class="field">
+          <label for="signinId">Wedding ID</label>
+          <input id="signinId" type="text" autocomplete="off" placeholder="e.g. sarah-et-david-15-08-2026" required />
+          <span class="hint">Enter the Wedding ID you got when you signed up.</span>
+        </div>
+        <button class="btn btn--big" id="signinBtn" type="submit">Continue →</button>
+        <p class="status" id="signinStatus" role="status"></p>
+      </form>
+    </div>
+  </main>
+
+  <!-- supabase-js (browser bundle) must load before our config + script -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="signup.js"></script>
+</body>
+</html>

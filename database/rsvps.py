@@ -31,6 +31,23 @@ def upsert_rsvp(
     return response.data[0]
 
 
+def get_confirmed_guests() -> list[dict]:
+    """Returns guest records (id, full_name, phone, group_name) for everyone who confirmed attendance."""
+    response = (
+        db.table("rsvps")
+        .select("party_size, guests(id, full_name, phone, group_name)")
+        .eq("status", "confirmed")
+        .execute()
+    )
+    guests = []
+    for row in response.data:
+        guest = row.get("guests")
+        if guest:
+            guest["party_size"] = row.get("party_size", 1)
+            guests.append(guest)
+    return guests
+
+
 def get_dashboard_stats() -> dict:
     """Returns counts for confirmed / declined / pending RSVPs."""
     rows = db.table("rsvps").select("status").execute().data

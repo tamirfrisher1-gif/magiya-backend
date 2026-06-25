@@ -48,3 +48,6 @@ Desktop.ini
 # Logs
 *.log
 logs/
+
+# Generated guest data — never commit real guest links
+invite_links.csv

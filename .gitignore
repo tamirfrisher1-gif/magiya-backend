@@ -51,3 +51,6 @@ logs/
 
 # Generated guest data — never commit real guest links
 invite_links.csv
+
+# Generated invitation image — regenerate with scripts/generate_invitation_image.py
+assets/invitation.png

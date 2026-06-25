@@ -1,3 +1,4 @@
+from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ContextTypes,
@@ -15,6 +16,7 @@ from core.wedding_config import COUPLE_NAME_1, COUPLE_NAME_2
 PHONE, ATTENDANCE, GUEST_COUNT, DIETARY = range(4)
 
 GUEST_NOT_FOUND_MSG = "מצטערים, לא מצאנו הזמנה במערכת. אנא צרו קשר עם המארגנים."
+INVITATION_IMAGE_PATH = Path(__file__).resolve().parent.parent / "assets" / "invitation.png"
 
 
 def _attendance_keyboard() -> InlineKeyboardMarkup:
@@ -49,10 +51,28 @@ def _dietary_keyboard() -> InlineKeyboardMarkup:
 
 
 async def _send_attendance_prompt(message) -> None:
-    await message.reply_text(
-        f"שלום! הוזמנת לחתונה של {COUPLE_NAME_1} ו{COUPLE_NAME_2}.",
-        reply_markup=_attendance_keyboard(),
-    )
+    greeting = f"שלום! הוזמנת לחתונה של {COUPLE_NAME_1} ו{COUPLE_NAME_2}."
+
+    if INVITATION_IMAGE_PATH.exists():
+        with open(INVITATION_IMAGE_PATH, "rb") as photo:
+            await message.reply_photo(
+                photo=photo,
+                caption=greeting,
+                reply_markup=_attendance_keyboard(),
+            )
+    else:
+        await message.reply_text(greeting, reply_markup=_attendance_keyboard())
+
+
+async def _advance(query, text: str, reply_markup=None) -> None:
+    """Moves the conversation to its next question. The greeting may have been sent
+    as a photo (with the invitation image) — Telegram can't edit a photo message into
+    a text message, so in that case we drop its buttons and send a fresh text message."""
+    if query.message.photo:
+        await query.edit_message_reply_markup(reply_markup=None)
+        await query.message.reply_text(text, reply_markup=reply_markup)
+    else:
+        await query.edit_message_text(text, reply_markup=reply_markup)
 
 
 async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -102,10 +122,10 @@ async def handle_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     if query.data == "attend_no":
         upsert_rsvp(guest_id=guest["id"], status="declined")
-        await query.edit_message_text("תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
+        await _advance(query, "תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
         return ConversationHandler.END
 
-    await query.edit_message_text("כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
+    await _advance(query, "כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
     return GUEST_COUNT
 
 
@@ -116,9 +136,19 @@ async def handle_guest_count(update: Update, context: ContextTypes.DEFAULT_TYPE)
     raw = query.data.removeprefix("count_")
     party_size = 5 if raw == "5plus" else int(raw)
     context.user_data["party_size"] = party_size
+    context.user_data["dietary_list"] = []
+    context.user_data["current_person"] = 1
 
-    await query.edit_message_text("העדפות מזון:", reply_markup=_dietary_keyboard())
+    await _ask_dietary_for_current_person(query, context)
     return DIETARY
+
+
+async def _ask_dietary_for_current_person(query, context: ContextTypes.DEFAULT_TYPE) -> None:
+    party_size = context.user_data["party_size"]
+    person = context.user_data["current_person"]
+
+    prompt = "העדפות מזון:" if party_size == 1 else f"העדפות מזון לאדם {person} מתוך {party_size}:"
+    await query.edit_message_text(prompt, reply_markup=_dietary_keyboard())
 
 
 async def handle_dietary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -130,19 +160,35 @@ async def handle_dietary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "diet_vegan": "טבעוני",
         "diet_kosher": "גלאט",
         "diet_celiac": "צליאקי",
-        "diet_none": None,
+        "diet_none": "אין",
     }
-    dietary = diet_map[query.data]
-    guest = context.user_data["guest"]
+    context.user_data["dietary_list"].append(diet_map[query.data])
+    context.user_data["current_person"] += 1
 
+    party_size = context.user_data["party_size"]
+    if context.user_data["current_person"] <= party_size:
+        await _ask_dietary_for_current_person(query, context)
+        return DIETARY
+
+    dietary_list = context.user_data["dietary_list"]
+    if party_size == 1:
+        dietary_summary = dietary_list[0] if dietary_list[0] != "אין" else None
+    else:
+        dietary_summary = "\n".join(
+            f"אדם {i}: {diet}" for i, diet in enumerate(dietary_list, start=1)
+        )
+
+    guest = context.user_data["guest"]
     upsert_rsvp(
         guest_id=guest["id"],
         status="confirmed",
-        party_size=context.user_data["party_size"],
-        dietary_restrictions=dietary,
+        party_size=party_size,
+        dietary_restrictions=dietary_summary,
     )
 
-    await query.edit_message_text("תודה! ה-RSVP שלך נקלט בהצלחה 🎉\nמצפים לראותך בחתונה! 💍")
+    await query.edit_message_text(
+        f"תודה על אישור ההגעה, {guest['full_name']}! 🎉\nנתראה באירוע! 💍"
+    )
     return ConversationHandler.END
 
 

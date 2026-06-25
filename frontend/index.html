@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — The Wedding, Handled.</title>
+  <meta name="description" content="MAGIYA — smart, fully automated wedding guest management for the bride & groom. Guestlists, seating, AI invitations and a live dashboard, all in one place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== Navigation ===== -->
+  <header class="nav">
+    <a href="#top" class="nav__logo">MAGIYA</a>
+    <nav class="nav__links">
+      <a href="#guestlist">Create Your Guestlist</a>
+      <a href="#seating">Seating Arrangements</a>
+      <a href="#invites">AI Invitation Maker</a>
+      <a href="#dashboard">Live Dashboard</a>
+    </nav>
+    <a href="#start" class="nav__cta">Sign Up</a>
+  </header>
+
+  <main id="top">
+    <!-- ===== Hero ===== -->
+    <section class="hero">
+      <div class="hero__meta">
+        <span>Issue Nº 01</span>
+        <span>For the Bride &amp; Groom</span>
+        <span>Est. 2026</span>
+      </div>
+
+      <h1 class="hero__title">
+        <span class="line line--1">THE</span>
+        <span class="line line--2">WEDDING,</span>
+        <span class="line line--3"><em>handled.</em></span>
+      </h1>
+
+      <div class="hero__bottom">
+        <p class="hero__lead">
+          Congratulations — now breathe. <strong>MAGIYA</strong> turns the chaos of guest
+          management into a single, beautiful flow. No spreadsheets, no chasing RSVPs,
+          no middlemen. Just the two of you, in control of your perfect day.
+        </p>
+        <a href="#start" class="btn btn--primary">Let's Get Started →</a>
+      </div>
+
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker__track">
+          <span>GUESTLISTS&nbsp;✦&nbsp;SEATING&nbsp;✦&nbsp;AI INVITATIONS&nbsp;✦&nbsp;LIVE RSVPS&nbsp;✦&nbsp;DIETARY NEEDS&nbsp;✦&nbsp;</span>
+          <span>GUESTLISTS&nbsp;✦&nbsp;SEATING&nbsp;✦&nbsp;AI INVITATIONS&nbsp;✦&nbsp;LIVE RSVPS&nbsp;✦&nbsp;DIETARY NEEDS&nbsp;✦&nbsp;</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Intro: what MAGIYA is (for the couple) ===== -->
+    <section class="intro">
+      <span class="kicker">What is MAGIYA?</span>
+      <p class="intro__statement">
+        One platform for the whole guest journey — from the first invitation to who's
+        walking through the door on the night. Built for couples who'd rather be
+        <em>celebrating</em> than spreadsheet-ing.
+      </p>
+    </section>
+
+    <!-- ===== Four pillars (the nav sections) ===== -->
+    <section class="pillars">
+      <article class="pillar" id="guestlist">
+        <span class="pillar__no">01</span>
+        <h2>Create Your Guestlist</h2>
+        <p>Import contacts from Google, then swipe to invite or skip and sort everyone into groups in minutes.</p>
+        <a href="#start" class="pillar__link">Build my list →</a>
+      </article>
+
+      <article class="pillar" id="seating">
+        <span class="pillar__no">02</span>
+        <h2>Seating Arrangements</h2>
+        <p>An AI seating algorithm suggests the optimal table plan — families together, exes apart.</p>
+        <a href="#start" class="pillar__link">Plan the tables →</a>
+      </article>
+
+      <article class="pillar" id="invites">
+        <span class="pillar__no">03</span>
+        <h2>AI Invitation Maker</h2>
+        <p>A chatbot designs custom invitations and sends them over WhatsApp, then collects RSVPs &amp; allergies for you.</p>
+        <a href="#start" class="pillar__link">Design invites →</a>
+      </article>
+
+      <article class="pillar" id="dashboard">
+        <span class="pillar__no">04</span>
+        <h2>Live Dashboard</h2>
+        <p>Watch confirmations roll in with real-time stats, guest status, and an event-day arrivals screen.</p>
+        <a href="#start" class="pillar__link">See it live →</a>
+      </article>
+    </section>
+
+    <!-- ===== Sign up CTA ===== -->
+    <section class="start" id="start">
+      <span class="kicker kicker--light">Your Perfect Day Awaits</span>
+      <h2 class="start__title">Let's get started.</h2>
+      <p class="start__sub">Create your free account and let MAGIYA handle the guest list.</p>
+
+      <form class="signup" onsubmit="return false;">
+        <input type="text" name="name" placeholder="Couple's names" aria-label="Couple's names" required />
+        <input type="email" name="email" placeholder="Email address" aria-label="Email address" required />
+        <button type="submit" class="btn btn--primary">Sign Up Free</button>
+      </form>
+      <p class="start__fine">No credit card. No spreadsheets. Ever.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="footer__logo">MAGIYA</span>
+    <span class="footer__line">AI Course · Final Project · 2026</span>
+    <span class="footer__fine">© 2026 MAGIYA — made for the bride &amp; groom.</span>
+  </footer>
+</body>
+</html>

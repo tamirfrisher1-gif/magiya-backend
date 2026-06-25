@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — Create Your Guestlist</title>
+  <meta name="description" content="Tinder-style guest sorting. Name your groups, then swipe to invite or skip." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="guestlist.css" />
+</head>
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="bar">
+    <a href="index.html" class="bar__logo">MAGIYA</a>
+    <span class="bar__crumb">Create Your Guestlist</span>
+    <a href="index.html" class="bar__back">← Home</a>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ SCREEN 1 · SET UP GROUPS ============ -->
+    <section class="screen screen--setup is-active" id="setup">
+      <span class="kicker">Step 01 · Guestlist</span>
+      <h1 class="setup__title">Name your <em>guest groups.</em></h1>
+      <p class="setup__lead">
+        Before you start swiping, create the groups you'll sort everyone into —
+        like family, friends, or colleagues. You can add as many as you like.
+      </p>
+
+      <form class="addgroup" id="addGroupForm">
+        <input id="groupInput" type="text" maxlength="24" autocomplete="off"
+               placeholder="e.g. Bride's Family" aria-label="New group name" />
+        <button type="submit" class="btn btn--primary">Add Group</button>
+      </form>
+
+      <div class="suggest">
+        <span class="suggest__label">Quick add:</span>
+        <button class="chip chip--ghost" data-suggest="Bride's Family">Bride's Family</button>
+        <button class="chip chip--ghost" data-suggest="Groom's Family">Groom's Family</button>
+        <button class="chip chip--ghost" data-suggest="Close Friends">Close Friends</button>
+        <button class="chip chip--ghost" data-suggest="Work">Work</button>
+        <button class="chip chip--ghost" data-suggest="Plus Ones">Plus Ones</button>
+      </div>
+
+      <div class="grouplist" id="groupList" aria-live="polite">
+        <p class="grouplist__empty" id="groupEmpty">No groups yet — add your first above.</p>
+      </div>
+
+      <button class="btn btn--big" id="startBtn" disabled>Start Swiping →</button>
+    </section>
+
+    <!-- ============ SCREEN 2 · SWIPE ============ -->
+    <section class="screen screen--swipe" id="swipe">
+      <div class="swipe__top">
+        <div class="progress">
+          <span id="progressText">0 / 0</span>
+          <div class="progress__bar"><div class="progress__fill" id="progressFill"></div></div>
+        </div>
+        <p class="hint">Swipe right / tap ✓ to invite into the active group · swipe left / tap ✕ to skip</p>
+      </div>
+
+      <div class="deck" id="deck">
+        <!-- cards injected by JS -->
+      </div>
+
+      <div class="actions">
+        <button class="action action--skip" id="skipBtn" title="Skip (←)">✕</button>
+        <button class="action action--undo" id="undoBtn" title="Undo" disabled>↺</button>
+        <button class="action action--invite" id="inviteBtn" title="Invite (→)">✓</button>
+      </div>
+
+      <div class="filing">
+        <p class="filing__label">Filing into: <strong id="activeName">—</strong></p>
+        <div class="filing__chips" id="filingChips"></div>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN 3 · SUMMARY ============ -->
+    <section class="screen screen--summary" id="summary">
+      <span class="kicker">All Sorted</span>
+      <h1 class="summary__title">Your guestlist <em>is ready.</em></h1>
+      <p class="summary__lead" id="summaryLead">Here's how your guests broke down.</p>
+      <div class="summary__grid" id="summaryGrid"></div>
+      <div class="summary__cta">
+        <button class="btn btn--big" id="sendBtn">Send Invitations →</button>
+        <button class="btn btn--text" id="restartBtn">Start over</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="guestlist.js"></script>
+</body>
+</html>

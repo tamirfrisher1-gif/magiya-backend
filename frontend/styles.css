@@ -137,9 +137,9 @@ body {
 .hero__title {
   font-family: var(--display);
   font-weight: 900;
-  font-size: clamp(4.5rem, 21vw, 19rem);
-  line-height: 0.76;
-  letter-spacing: -4px;
+  font-size: clamp(3rem, 15vmin, 11rem);
+  line-height: 0.78;
+  letter-spacing: -3px;
   text-transform: uppercase;
 }
 .hero__title .line { display: block; }
@@ -278,8 +278,8 @@ body {
 .start__title {
   font-family: var(--display);
   font-weight: 900;
-  font-size: clamp(3rem, 11vw, 8rem);
-  line-height: 0.9;
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  line-height: 0.92;
   letter-spacing: -1px;
 }
 .start__sub { font-size: 1.3rem; margin: 1rem auto 2.5rem; max-width: 36ch; }

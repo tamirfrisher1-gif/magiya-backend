@@ -16,30 +16,36 @@ AUTH_CODE = range(1)
 async def import_contacts_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     auth_url = get_auth_url()
     await update.message.reply_text(
-        "Let's import your Google Contacts!\n\n"
-        f"1. Open this link and sign in:\n{auth_url}\n\n"
-        "2. After granting access, copy the authorization code shown and paste it here."
+        "📱 *Import your Google Contacts*\n\n"
+        "1️⃣ Click the link below to connect your Google account\n"
+        "2️⃣ Authorize access to your contacts\n"
+        "3️⃣ Copy the code you receive and paste it here\n\n"
+        f"{auth_url}",
+        parse_mode="Markdown",
     )
     return AUTH_CODE
 
 
 async def receive_auth_code(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     code = update.message.text.strip()
+    await update.message.reply_text("⏳ Importing your contacts, please wait...")
 
     try:
         raw_contacts = fetch_google_contacts(code)
+        guests = contacts_to_guests(raw_contacts)
+        result = import_guests_from_list(guests)
     except Exception:
         await update.message.reply_text(
-            "That code didn't work. Run /import_contacts to try again."
+            "❌ Something went wrong. Make sure you copied the full code correctly "
+            "and try /import_contacts again."
         )
         return ConversationHandler.END
 
-    guests = contacts_to_guests(raw_contacts)
-    result = import_guests_from_list(guests)
-
     await update.message.reply_text(
-        f"Done! Imported {result['inserted']} contacts.\n"
-        f"Skipped {len(result['skipped'])} (missing or invalid phone numbers)."
+        f"✅ Import complete!\n\n"
+        f"👥 Imported: {result['inserted']} contacts\n"
+        f"⏭️ Skipped: {len(result['skipped'])} (missing or invalid phone number)\n\n"
+        f"You can now classify your guests into groups."
     )
     return ConversationHandler.END
 

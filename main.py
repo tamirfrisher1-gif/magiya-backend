@@ -5,6 +5,7 @@ from config.settings import TELEGRAM_BOT_TOKEN
 from bot_handlers.commands import start, ping, help_command
 from bot_handlers.rsvp_flow import rsvp_conversation
 from bot_handlers.admin import stats
+from bot_handlers.contacts import import_contacts_conversation
 
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -21,6 +22,7 @@ def main() -> None:
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(rsvp_conversation)
+    app.add_handler(import_contacts_conversation)
 
     logger.info("MAGIYA bot is starting...")
     app.run_polling()

@@ -1,23 +1,84 @@
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
     CommandHandler,
+    CallbackQueryHandler,
     MessageHandler,
     filters,
 )
-from database.guests import get_guest_by_phone
+from database.guests import get_guest_by_phone, get_guest_by_id
 from database.rsvps import upsert_rsvp
+from core.wedding_config import COUPLE_NAME_1, COUPLE_NAME_2
 
 # Conversation states
-PHONE, ATTENDANCE, PARTY_SIZE, DIETARY = range(4)
+PHONE, ATTENDANCE, GUEST_COUNT, DIETARY = range(4)
+
+GUEST_NOT_FOUND_MSG = "מצטערים, לא מצאנו הזמנה במערכת. אנא צרו קשר עם המארגנים."
+
+
+def _attendance_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ אני מאשר", callback_data="attend_yes"),
+            InlineKeyboardButton("❌ לא מאשר", callback_data="attend_no"),
+        ]
+    ])
+
+
+def _guest_count_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("1", callback_data="count_1"),
+            InlineKeyboardButton("2", callback_data="count_2"),
+            InlineKeyboardButton("3", callback_data="count_3"),
+            InlineKeyboardButton("4", callback_data="count_4"),
+            InlineKeyboardButton("5+", callback_data="count_5plus"),
+        ]
+    ])
+
+
+def _dietary_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("צמחוני", callback_data="diet_vegetarian")],
+        [InlineKeyboardButton("טבעוני", callback_data="diet_vegan")],
+        [InlineKeyboardButton("גלאט", callback_data="diet_kosher")],
+        [InlineKeyboardButton("צליאקי", callback_data="diet_celiac")],
+        [InlineKeyboardButton("אין", callback_data="diet_none")],
+    ])
+
+
+async def _send_attendance_prompt(message) -> None:
+    await message.reply_text(
+        f"שלום! הוזמנת לחתונה של {COUPLE_NAME_1} ו{COUPLE_NAME_2}.",
+        reply_markup=_attendance_keyboard(),
+    )
+
+
+async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Entry point for /start. With a deep-link payload (?start=<guest_id>) it jumps
+    straight into the RSVP flow; without one it just shows a generic welcome."""
+    if not context.args:
+        await update.message.reply_text(
+            "ברוכים הבאים ל-MAGIYA! 💍\nלאישור הגעה הקלידו /rsvp"
+        )
+        return ConversationHandler.END
+
+    guest_id = context.args[0]
+    guest = get_guest_by_id(guest_id)
+
+    if not guest:
+        await update.message.reply_text(GUEST_NOT_FOUND_MSG)
+        return ConversationHandler.END
+
+    context.user_data["guest"] = guest
+    await _send_attendance_prompt(update.message)
+    return ATTENDANCE
 
 
 async def rsvp_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "Let's record your RSVP!\n\nPlease send your phone number (digits only, e.g. 0501234567):",
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    """Entry point for /rsvp — manual flow that asks for a phone number first."""
+    await update.message.reply_text("לאישור הגעה, אנא שלחו את מספר הטלפון שלכם:")
     return PHONE
 
 
@@ -26,93 +87,80 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     guest = get_guest_by_phone(phone)
 
     if not guest:
-        await update.message.reply_text(
-            "Sorry, I couldn't find your number on the guest list. "
-            "Please contact the wedding organizer."
-        )
+        await update.message.reply_text(GUEST_NOT_FOUND_MSG)
         return ConversationHandler.END
 
     context.user_data["guest"] = guest
-    keyboard = [["Yes, I'm coming!", "No, I can't make it"]]
-    await update.message.reply_text(
-        f"Hi {guest['full_name']}! Are you coming to the wedding?",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
-    )
+    await _send_attendance_prompt(update.message)
     return ATTENDANCE
 
 
-async def receive_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    answer = update.message.text.strip().lower()
+async def handle_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    guest = context.user_data["guest"]
 
-    if "no" in answer:
-        guest = context.user_data["guest"]
+    if query.data == "attend_no":
         upsert_rsvp(guest_id=guest["id"], status="declined")
-        await update.message.reply_text(
-            "Sorry to hear that! Your response has been recorded. Take care!",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        await query.edit_message_text("תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
         return ConversationHandler.END
 
-    context.user_data["status"] = "confirmed"
-    await update.message.reply_text(
-        "Great! How many guests will be coming (including yourself)?",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return PARTY_SIZE
+    await query.edit_message_text("כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
+    return GUEST_COUNT
 
 
-async def receive_party_size(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    try:
-        size = int(update.message.text.strip())
-    except ValueError:
-        await update.message.reply_text("Please enter a number (e.g. 2).")
-        return PARTY_SIZE
+async def handle_guest_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
 
-    context.user_data["party_size"] = size
-    keyboard = [["No dietary restrictions"]]
-    await update.message.reply_text(
-        "Do you have any dietary restrictions or allergies? "
-        "(e.g. vegetarian, vegan, gluten-free, nut allergy)",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True),
-    )
+    raw = query.data.removeprefix("count_")
+    party_size = 5 if raw == "5plus" else int(raw)
+    context.user_data["party_size"] = party_size
+
+    await query.edit_message_text("העדפות מזון:", reply_markup=_dietary_keyboard())
     return DIETARY
 
 
-async def receive_dietary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    dietary = update.message.text.strip()
-    if dietary.lower() == "no dietary restrictions":
-        dietary = None
+async def handle_dietary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
 
+    diet_map = {
+        "diet_vegetarian": "צמחוני",
+        "diet_vegan": "טבעוני",
+        "diet_kosher": "גלאט",
+        "diet_celiac": "צליאקי",
+        "diet_none": None,
+    }
+    dietary = diet_map[query.data]
     guest = context.user_data["guest"]
+
     upsert_rsvp(
         guest_id=guest["id"],
-        status=context.user_data["status"],
+        status="confirmed",
         party_size=context.user_data["party_size"],
         dietary_restrictions=dietary,
     )
 
-    await update.message.reply_text(
-        "Your RSVP is confirmed! See you at the wedding! 💍",
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    await query.edit_message_text("תודה! ה-RSVP שלך נקלט בהצלחה 🎉\nמצפים לראותך בחתונה! 💍")
     return ConversationHandler.END
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "RSVP cancelled. You can start again with /rsvp.",
-        reply_markup=ReplyKeyboardRemove(),
-    )
+    await update.message.reply_text("האישור בוטל. ניתן להתחיל מחדש עם /rsvp")
     return ConversationHandler.END
 
 
 rsvp_conversation = ConversationHandler(
-    entry_points=[CommandHandler("rsvp", rsvp_start)],
+    entry_points=[
+        CommandHandler("start", start_entry),
+        CommandHandler("rsvp", rsvp_start),
+    ],
     states={
         PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
-        ATTENDANCE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_attendance)],
-        PARTY_SIZE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_party_size)],
-        DIETARY: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_dietary)],
+        ATTENDANCE: [CallbackQueryHandler(handle_attendance, pattern="^attend_")],
+        GUEST_COUNT: [CallbackQueryHandler(handle_guest_count, pattern="^count_")],
+        DIETARY: [CallbackQueryHandler(handle_dietary, pattern="^diet_")],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )

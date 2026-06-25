@@ -1,10 +1,12 @@
 /* ===========================================================
    MAGIYA — Create Your Guestlist
    Tinder-style sorting: name groups, then swipe to invite/skip.
-   Front-end only — sample contacts stand in for the Google import.
+   Loads real guests from Supabase; falls back to sample data.
    =========================================================== */
 
-/* ---------- Sample contacts (placeholder for Google Contacts) ---------- */
+const WEDDING_ID = localStorage.getItem('magiya_wedding_id') || null;
+
+/* ---------- Sample contacts (fallback when no Supabase guests yet) ---------- */
 const SAMPLE_CONTACTS = [
   { name: 'Maya Cohen',        phone: '054-201-8841' },
   { name: 'Daniel Levi',       phone: '052-774-1190' },
@@ -23,6 +25,7 @@ const SAMPLE_CONTACTS = [
   { name: 'Ariel Stern',       phone: '053-488-1276' },
   { name: 'Dana Weiss',        phone: '058-219-6604' },
 ];
+let contacts = [...SAMPLE_CONTACTS]; // overwritten by loadContacts()
 
 const AVATAR_COLORS = ['#6e1423', '#4f0d18', '#2b2b2b', '#7a3b2e', '#5a4a38', '#3b3a52'];
 
@@ -148,7 +151,7 @@ function initials(name) {
 function renderDeck() {
   deck.innerHTML = '';
   // render up to 3 cards, top card last so it stacks on top
-  const slice = SAMPLE_CONTACTS.slice(index, index + 3).reverse();
+  const slice = contacts.slice(index, index + 3).reverse();
   slice.forEach((contact, i) => {
     const realIdx = index + (slice.length - 1 - i);
     const card = buildCard(contact, realIdx);
@@ -239,7 +242,7 @@ function enableDrag(card) {
 
 /* ---------- Commit a decision ---------- */
 function commit(decision, card) {
-  const contact = SAMPLE_CONTACTS[index];
+  const contact = contacts[index];
   if (!contact) return;
 
   // animate the (top) card off screen
@@ -263,7 +266,7 @@ function commit(decision, card) {
   undoBtn.disabled = history.length === 0;
 
   setTimeout(() => {
-    if (index >= SAMPLE_CONTACTS.length) {
+    if (index >= contacts.length) {
       buildSummary();
       showScreen('summary');
     } else {
@@ -274,8 +277,8 @@ function commit(decision, card) {
 }
 
 function updateProgress() {
-  progressText.textContent = `${index} / ${SAMPLE_CONTACTS.length}`;
-  progressFill.style.width = (index / SAMPLE_CONTACTS.length) * 100 + '%';
+  progressText.textContent = `${index} / ${contacts.length}`;
+  progressFill.style.width = (index / contacts.length) * 100 + '%';
 }
 
 /* ---------- Undo ---------- */
@@ -345,8 +348,45 @@ function escapeHtml(s) {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-$('sendBtn').addEventListener('click', () => {
-  alert('🎉 Guestlist saved!\n\nNext step: MAGIYA will design invitations and send them over WhatsApp.\n(This connects to the backend later.)');
+$('sendBtn').addEventListener('click', async () => {
+  const btn = $('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    if (WEDDING_ID && typeof db !== 'undefined') {
+      // Save each group name to the groups table
+      for (const cat of categories) {
+        await db.from('groups').upsert(
+          { wedding_id: WEDDING_ID, name: cat },
+          { onConflict: 'wedding_id,name' }
+        );
+      }
+
+      // Update group_name for each invited guest in Supabase
+      for (const cat of categories) {
+        for (const contact of (assignments[cat] || [])) {
+          if (contact.phone) {
+            await db.from('guests')
+              .update({ group_name: cat, wedding_id: WEDDING_ID })
+              .eq('phone', contact.phone.replace(/[-\s]/g, ''));
+          }
+        }
+      }
+
+      btn.textContent = '✅ Saved!';
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+    } else {
+      // No Supabase session — just show success for demo
+      btn.textContent = '✅ Saved!';
+      alert('🎉 Guestlist saved! (Demo mode — sign up to connect to Supabase)');
+      btn.disabled = false;
+    }
+  } catch (err) {
+    btn.textContent = '❌ Error — try again';
+    btn.disabled = false;
+    console.error(err);
+  }
 });
 
 $('restartBtn').addEventListener('click', () => {
@@ -354,5 +394,20 @@ $('restartBtn').addEventListener('click', () => {
   showScreen('setup');
 });
 
-/* ---------- Init ---------- */
-renderGroups();
+/* ---------- Init — load guests from Supabase or use samples ---------- */
+async function loadContacts() {
+  if (WEDDING_ID && typeof db !== 'undefined') {
+    const { data, error } = await db
+      .from('guests')
+      .select('full_name, phone')
+      .eq('wedding_id', WEDDING_ID);
+
+    if (!error && data && data.length > 0) {
+      contacts = data.map((g) => ({ name: g.full_name || 'Unknown', phone: g.phone }));
+    }
+    // else keep SAMPLE_CONTACTS fallback
+  }
+  renderGroups();
+}
+
+loadContacts();

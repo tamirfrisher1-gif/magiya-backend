@@ -14,6 +14,11 @@ def get_guest_by_phone(phone: str) -> Optional[dict]:
     return response.data if response is not None else None
 
 
+def get_guest_by_id(guest_id: str) -> Optional[dict]:
+    response = db.table("guests").select("*").eq("id", guest_id).maybe_single().execute()
+    return response.data if response is not None else None
+
+
 def upsert_guest(data: dict) -> dict:
     """Insert or update a guest. `data` must include `phone` as the unique key."""
     response = db.table("guests").upsert(data, on_conflict="phone").execute()

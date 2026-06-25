@@ -19,6 +19,41 @@ def get_guest_by_id(guest_id: str) -> Optional[dict]:
     return response.data if response is not None else None
 
 
+def get_unclassified_guests() -> list[dict]:
+    """Returns guests not yet run through the swipe classifier: no group assigned
+    yet and not already skipped. This is the deck frontend/guestlist.js shows."""
+    response = (
+        db.table("guests")
+        .select("*")
+        .is_("group_name", "null")
+        .eq("invited", True)
+        .execute()
+    )
+    return response.data
+
+
+def classify_guests(decisions: list[dict]) -> dict:
+    """Applies swipe-classifier decisions in bulk.
+    Each decision: {"guest_id": ..., "decision": "invite"|"skip", "group_name": ...}.
+    "group_name" is required when decision is "invite", ignored for "skip"."""
+    invited_count = 0
+    skipped_count = 0
+
+    for item in decisions:
+        guest_id = item["guest_id"]
+        if item["decision"] == "invite":
+            db.table("guests").update({
+                "group_name": item["group_name"],
+                "invited": True,
+            }).eq("id", guest_id).execute()
+            invited_count += 1
+        else:
+            db.table("guests").update({"invited": False}).eq("id", guest_id).execute()
+            skipped_count += 1
+
+    return {"invited": invited_count, "skipped": skipped_count}
+
+
 def upsert_guest(data: dict) -> dict:
     """Insert or update a guest. `data` must include `phone` as the unique key."""
     response = db.table("guests").upsert(data, on_conflict="phone").execute()
@@ -60,8 +95,14 @@ def import_guests_from_list(guests: list[dict]) -> dict:
 
 
 def get_guests_by_group(group_name: str) -> list[dict]:
-    """Returns all guests belonging to the given group (e.g. 'family', 'friends', 'work')."""
-    response = db.table("guests").select("*").eq("group_name", group_name).execute()
+    """Returns all invited guests belonging to the given group (e.g. 'family', 'friends', 'work')."""
+    response = (
+        db.table("guests")
+        .select("*")
+        .eq("group_name", group_name)
+        .eq("invited", True)
+        .execute()
+    )
     return response.data
 
 
@@ -132,8 +173,9 @@ def import_from_google_csv(file_path: str) -> dict:
 
 
 def get_guest_stats() -> dict:
-    """Returns the total guest count and a breakdown of how many guests are in each group."""
-    rows = db.table("guests").select("group_name").execute().data
+    """Returns the total invited guest count and a breakdown of how many are in each group.
+    Excludes guests skipped via the swipe classifier (invited=false)."""
+    rows = db.table("guests").select("group_name").eq("invited", True).execute().data
     total = len(rows)
     by_group: dict[str, int] = {}
     for row in rows:

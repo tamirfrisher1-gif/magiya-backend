@@ -1,0 +1,22 @@
+[build]
+  publish = "frontend"
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/guestlist"
+  to = "/guestlist.html"
+  status = 200
+
+[[redirects]]
+  from = "/seating"
+  to = "/seating.html"
+  status = 200
+
+[[redirects]]
+  from = "/signup"
+  to = "/signup.html"
+  status = 200

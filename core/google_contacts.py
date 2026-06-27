@@ -1,30 +1,36 @@
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from config.settings import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from config.settings import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
 
 SCOPES = ["https://www.googleapis.com/auth/contacts.readonly"]
 
 _CLIENT_CONFIG = {
-    "installed": {
+    "web": {
         "client_id": GOOGLE_CLIENT_ID,
         "client_secret": GOOGLE_CLIENT_SECRET,
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
-        "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"],
+        "redirect_uris": [GOOGLE_REDIRECT_URI],
     }
 }
 
 
-def get_auth_url() -> str:
-    """Returns the Google OAuth URL to redirect the user to for contact access."""
-    flow = InstalledAppFlow.from_client_config(_CLIENT_CONFIG, scopes=SCOPES)
-    auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline")
+def _new_flow() -> Flow:
+    return Flow.from_client_config(_CLIENT_CONFIG, scopes=SCOPES, redirect_uri=GOOGLE_REDIRECT_URI)
+
+
+def get_auth_url(state: str = "") -> str:
+    """Returns the Google OAuth URL to redirect the browser to for contact access.
+    `state` round-trips through Google back to our callback (we use it to carry
+    the wedding_id so imported contacts can be tagged to the right wedding)."""
+    flow = _new_flow()
+    auth_url, _ = flow.authorization_url(prompt="consent", access_type="offline", state=state)
     return auth_url
 
 
 def fetch_google_contacts(code: str) -> list[dict]:
     """Exchanges the OAuth code for a token, then fetches all contacts from Google People API."""
-    flow = InstalledAppFlow.from_client_config(_CLIENT_CONFIG, scopes=SCOPES)
+    flow = _new_flow()
     flow.fetch_token(code=code)
     service = build("people", "v1", credentials=flow.credentials)
 

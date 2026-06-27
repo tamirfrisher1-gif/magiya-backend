@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="guestlist.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
+  <script src="api-config.js"></script>
 </head>
 <body>
   <!-- ===== Top bar ===== -->
@@ -30,6 +31,12 @@
         Before you start swiping, create the groups you'll sort everyone into —
         like family, friends, or colleagues. You can add as many as you like.
       </p>
+
+      <div id="importBanner" class="importBanner" style="display:none;"></div>
+
+      <button type="button" class="btn btn--outline" id="importGoogleBtn">
+        Import from Google Contacts →
+      </button>
 
       <form class="addgroup" id="addGroupForm">
         <input id="groupInput" type="text" maxlength="24" autocomplete="off"

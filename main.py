@@ -4,7 +4,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 from config.settings import TELEGRAM_BOT_TOKEN
 from bot_handlers.commands import ping, help_command
 from bot_handlers.rsvp_flow import rsvp_conversation
-from bot_handlers.contacts_flow import import_contacts_conversation
 from bot_handlers.admin import stats, seating
 
 logging.basicConfig(
@@ -22,7 +21,6 @@ def main() -> None:
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("seating", seating))
     app.add_handler(rsvp_conversation)
-    app.add_handler(import_contacts_conversation)
 
     logger.info("MAGIYA bot is starting...")
     app.run_polling()

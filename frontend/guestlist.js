@@ -7,6 +7,12 @@
 const WEDDING_ID = localStorage.getItem('magiya_wedding_id') || null;
 const API = (typeof MAGIYA_API_BASE !== 'undefined') ? MAGIYA_API_BASE : '';
 
+function normalizePhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (digits.startsWith('972')) digits = '0' + digits.slice(3);
+  return digits;
+}
+
 /* ---------- Import from Google Contacts ---------- */
 document.getElementById('importGoogleBtn').addEventListener('click', () => {
   const params = new URLSearchParams({ wedding_id: WEDDING_ID || '' });
@@ -398,7 +404,7 @@ $('sendBtn').addEventListener('click', async () => {
         for (const contact of (assignments[cat] || [])) {
           if (contact.phone) {
             await magiyaSupabase.from('guests').upsert({
-              phone: contact.phone.replace(/[-\s]/g, ''),
+              phone: normalizePhone(contact.phone),
               full_name: contact.name,
               group_name: cat,
               wedding_id: WEDDING_ID,

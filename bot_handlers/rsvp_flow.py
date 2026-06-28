@@ -1,6 +1,9 @@
 import base64
 import io
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from telegram import InputFile, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ContextTypes,
@@ -107,16 +110,13 @@ async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
         wedding_id = guest.get("wedding_id")
         wedding = get_wedding(wedding_id) if wedding_id else None
-        await update.message.reply_text(
-            f"[DEBUG] guest_id={guest.get('id')[:8]}... wedding_id={wedding_id} "
-            f"bride={wedding.get('bride_name') if wedding else 'NO WEDDING FOUND'}"
-        )
         context.user_data["guest"] = guest
         context.user_data["wedding"] = wedding
         await _send_attendance_prompt(update.message, guest, wedding)
         return ATTENDANCE
     except Exception as exc:
-        await update.message.reply_text(f"[DEBUG] Error: {exc}")
+        logger.exception("start_entry error: %s", exc)
+        await update.message.reply_text("אירעה שגיאה. אנא נסו שוב מאוחר יותר.")
         return ConversationHandler.END
 
 
@@ -166,7 +166,8 @@ async def handle_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await _advance(query, "כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
         return GUEST_COUNT
     except Exception as exc:
-        await query.message.reply_text(f"[DEBUG] handle_attendance error: {exc}")
+        logger.exception("handle_attendance error: %s", exc)
+        await query.message.reply_text("אירעה שגיאה. אנא נסו שוב מאוחר יותר.")
         return ConversationHandler.END
 
 

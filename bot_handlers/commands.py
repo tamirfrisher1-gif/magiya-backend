@@ -12,7 +12,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/start — Welcome message\n"
         "/ping  — Check if the bot is running\n"
         "/rsvp  — Submit your RSVP\n"
-        "/import_contacts — (Admins only) Import guests from Google Contacts\n"
         "/seating — (Admins only) Generate AI seating plan for confirmed guests\n"
         "/stats — (Admins only) View RSVP dashboard stats"
     )

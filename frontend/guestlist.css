@@ -78,6 +78,17 @@ body {
 .btn--big:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: 5px 5px 0 var(--muted); }
 .btn--text { background: none; color: var(--ink); text-decoration: underline; padding: 1rem; }
 .btn--text:hover { color: var(--accent); }
+.btn--outline {
+  background: var(--paper); color: var(--ink); border: 2px solid var(--ink);
+  margin-bottom: 1.5rem;
+}
+.btn--outline:hover { background: var(--ink); color: var(--paper); }
+
+.importBanner {
+  border: 2px solid var(--ink); border-left: 6px solid var(--accent);
+  background: var(--paper-2); padding: 0.8rem 1rem; font-size: 0.92rem; margin-bottom: 1.2rem;
+}
+.importBanner--error { border-left-color: var(--muted); }
 
 /* ========== SCREEN 1 · SETUP ========== */
 .setup__title { font-family: var(--display); font-weight: 900; font-size: clamp(2.4rem, 7vw, 4.5rem); line-height: 0.95; letter-spacing: -1px; }

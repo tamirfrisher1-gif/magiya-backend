@@ -5,6 +5,36 @@
    =========================================================== */
 
 const WEDDING_ID = localStorage.getItem('magiya_wedding_id') || null;
+const API = (typeof MAGIYA_API_BASE !== 'undefined') ? MAGIYA_API_BASE : '';
+
+/* ---------- Import from Google Contacts ---------- */
+document.getElementById('importGoogleBtn').addEventListener('click', () => {
+  const params = new URLSearchParams({ wedding_id: WEDDING_ID || '' });
+  window.location.href = `${API}/auth/google/start?${params.toString()}`;
+});
+
+(function showImportResultFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const banner = document.getElementById('importBanner');
+  if (!banner) return;
+
+  if (params.has('imported')) {
+    const imported = params.get('imported');
+    const skipped = params.get('skipped') || '0';
+    banner.textContent = `✓ Imported ${imported} contact${imported === '1' ? '' : 's'} from Google` +
+      (skipped !== '0' ? ` (skipped ${skipped} without a usable phone number).` : '.');
+    banner.style.display = 'block';
+  } else if (params.has('error')) {
+    banner.textContent = `⚠ Google import failed: ${params.get('error')}`;
+    banner.className = 'importBanner importBanner--error';
+    banner.style.display = 'block';
+  }
+
+  if (params.has('imported') || params.has('error')) {
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+  }
+})();
 
 /* ---------- Sample contacts (fallback when no Supabase guests yet) ---------- */
 const SAMPLE_CONTACTS = [

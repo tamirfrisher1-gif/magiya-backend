@@ -36,14 +36,20 @@
         </div>
 
         <div class="field">
-          <label for="invImageUrl">Photo URL <span class="field__opt">(optional)</span></label>
-          <input id="invImageUrl" type="url" placeholder="https://... paste a link to your invitation image" />
-          <span class="field__hint">Paste a direct image link (jpg/png). The bot will send this photo along with your message.</span>
+          <label>Invitation photo <span class="field__opt">(optional)</span></label>
+          <div class="photo-pick">
+            <button type="button" class="btn btn--outline" id="pickPhotoBtn">Choose photo from computer</button>
+            <input id="invPhoto" type="file" accept="image/*" hidden />
+            <span class="photo-pick__status" id="photoStatus"></span>
+          </div>
+          <input id="invImageUrl" type="hidden" />
+          <span class="field__hint">Choose a photo from your computer. The bot will send it with your message.</span>
         </div>
 
         <div class="customize__preview" id="previewBox" hidden>
           <span class="customize__preview-label">Preview</span>
           <img id="previewImg" src="" alt="Invitation photo preview" />
+          <button type="button" class="btn btn--remove" id="removePhotoBtn">Remove photo</button>
         </div>
 
         <div class="customize__actions">

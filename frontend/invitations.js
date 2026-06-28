@@ -36,12 +36,55 @@ async function loadWeddingCustomisation() {
   if (data.invitation_image_url) {
     $('invImageUrl').value = data.invitation_image_url;
     showPreview(data.invitation_image_url);
+    $('photoStatus').textContent = '✓ Photo saved';
   }
 }
 
-$('invImageUrl').addEventListener('input', () => {
-  const url = $('invImageUrl').value.trim();
-  if (url) showPreview(url); else $('previewBox').hidden = true;
+$('pickPhotoBtn').addEventListener('click', () => $('invPhoto').click());
+
+$('invPhoto').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Show local preview immediately (before upload)
+  const localUrl = URL.createObjectURL(file);
+  showPreview(localUrl);
+
+  if (!WEDDING_ID || !magiyaSupabase) {
+    $('photoStatus').textContent = '⚠ Sign up first.';
+    return;
+  }
+
+  $('photoStatus').textContent = 'Uploading…';
+  $('pickPhotoBtn').disabled = true;
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `${WEDDING_ID}/invitation.${ext}`;
+
+  const { data: uploadData, error: uploadError } = await magiyaSupabase.storage
+    .from('wedding-assets')
+    .upload(path, file, { upsert: true });
+
+  $('pickPhotoBtn').disabled = false;
+
+  if (uploadError) {
+    $('photoStatus').textContent = `⚠ ${uploadError.message}`;
+    return;
+  }
+
+  const { data: { publicUrl } } = magiyaSupabase.storage
+    .from('wedding-assets')
+    .getPublicUrl(path);
+
+  $('invImageUrl').value = publicUrl;
+  $('photoStatus').textContent = '✓ Photo ready';
+});
+
+$('removePhotoBtn').addEventListener('click', () => {
+  $('invPhoto').value = '';
+  $('invImageUrl').value = '';
+  $('previewBox').hidden = true;
+  $('photoStatus').textContent = '';
 });
 
 function showPreview(url) {

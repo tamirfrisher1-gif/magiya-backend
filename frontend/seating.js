@@ -21,7 +21,11 @@ const colorForGroup = (name) => {
    ========================================================= */
 async function getConfirmedGuests() {
   const base = (typeof MAGIYA_API_BASE !== 'undefined') ? MAGIYA_API_BASE : '';
-  const res = await fetch(`${base}/guests/confirmed`, { headers: { Accept: 'application/json' } });
+  const weddingId = localStorage.getItem('magiya_wedding_id');
+  const url = weddingId
+    ? `${base}/guests/confirmed?wedding_id=${encodeURIComponent(weddingId)}`
+    : `${base}/guests/confirmed`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`API responded ${res.status}`);
   const data = await res.json(); // [{ name, group, party_size }]
   const out = [];

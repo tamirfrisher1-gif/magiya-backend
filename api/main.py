@@ -62,7 +62,6 @@ async def lifespan(app: FastAPI):
     keep_alive_task = asyncio.create_task(_keep_alive())
     yield
     keep_alive_task.cancel()
-    await _bot.bot.delete_webhook()
     await _bot.stop()
     await _bot.shutdown()
 

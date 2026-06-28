@@ -4,9 +4,12 @@ MAGIYA Dashboard API + Telegram Bot (webhook mode).
 Run locally:
     uvicorn api.main:app --reload --port 8001
 """
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from urllib.parse import urlencode
+
+import httpx
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,8 +29,21 @@ from bot_handlers.admin import stats, seating
 logger = logging.getLogger(__name__)
 
 WEBHOOK_URL = "https://magiya-api.onrender.com/webhook"
+HEALTH_URL = "https://magiya-api.onrender.com/health"
 
 _bot = None  # telegram Application instance
+
+
+async def _keep_alive():
+    """Ping our own /health every 60 s so Render never spins down."""
+    await asyncio.sleep(30)  # let startup finish first
+    async with httpx.AsyncClient() as client:
+        while True:
+            try:
+                await client.get(HEALTH_URL, timeout=10)
+            except Exception:
+                pass
+            await asyncio.sleep(60)
 
 
 @asynccontextmanager
@@ -43,7 +59,9 @@ async def lifespan(app: FastAPI):
     await _bot.start()
     await _bot.bot.set_webhook(WEBHOOK_URL)
     logger.info("Telegram webhook registered at %s", WEBHOOK_URL)
+    keep_alive_task = asyncio.create_task(_keep_alive())
     yield
+    keep_alive_task.cancel()
     await _bot.bot.delete_webhook()
     await _bot.stop()
     await _bot.shutdown()

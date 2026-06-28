@@ -1,0 +1,80 @@
+/* ===========================================================
+   MAGIYA — Invitations page
+   =========================================================== */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --burgundy: #6e1423;
+  --burgundy-dark: #4f0d18;
+  --gold: #c98a2e;
+  --ink: #1a1a1a;
+  --muted: #666;
+  --paper: #faf8f5;
+  --paper-2: #f0ede8;
+  --border: #e0dbd4;
+  --radius: 10px;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Archivo', system-ui, sans-serif;
+}
+
+body { font-family: var(--font-sans); background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+/* ---- Top bar ---- */
+.bar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 0; z-index: 10; }
+.bar__logo { font-family: var(--font-serif); font-weight: 900; font-size: 1.2rem; color: var(--burgundy); text-decoration: none; }
+.bar__crumb { font-size: .85rem; color: var(--muted); }
+.bar__back { font-size: .85rem; color: var(--muted); text-decoration: none; }
+.bar__back:hover { color: var(--ink); }
+
+/* ---- Stage ---- */
+.stage { max-width: 1000px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+/* ---- Head ---- */
+.kicker { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: .75rem; }
+.inv__title { font-family: var(--font-serif); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; }
+.inv__title em { font-style: italic; color: var(--burgundy); }
+.inv__sub { color: var(--muted); max-width: 60ch; line-height: 1.7; margin-bottom: 2.5rem; }
+
+/* ---- Bar ---- */
+.inv__bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.inv__count { font-weight: 600; font-size: 1.1rem; }
+.inv__actions { display: flex; gap: .75rem; }
+
+/* ---- Banner ---- */
+.banner { padding: .85rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.5rem; font-size: .9rem; line-height: 1.5; }
+.banner--info { background: #e8f4fd; color: #1a4a6e; border: 1px solid #b3d4f0; }
+.banner--warn { background: #fff8e1; color: #7a5a00; border: 1px solid #f0d98a; }
+.banner a { color: var(--burgundy); }
+
+/* ---- Table ---- */
+.inv__table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: #fff; }
+.inv__table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.inv__table thead { background: var(--paper-2); }
+.inv__table th { padding: .85rem 1rem; text-align: left; font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+.inv__table td { padding: .9rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.inv__table tr:last-child td { border-bottom: none; }
+.inv__table tr:hover td { background: var(--paper); }
+
+.inv__name { font-weight: 500; }
+.inv__badge { display: inline-block; padding: .2rem .65rem; border-radius: 20px; font-size: .75rem; font-weight: 600; color: #fff; }
+.inv__phone { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.inv__link { font-size: .78rem; color: var(--burgundy); word-break: break-all; }
+.inv__nolink { font-size: .78rem; color: var(--muted); font-style: italic; }
+.inv__loading { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+
+/* ---- Buttons ---- */
+.btn { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.4rem; border-radius: var(--radius); font-family: var(--font-sans); font-size: .9rem; font-weight: 600; cursor: pointer; text-decoration: none; border: none; transition: opacity .15s, background .15s; }
+.btn--primary { background: var(--burgundy); color: #fff; }
+.btn--primary:hover { background: var(--burgundy-dark); }
+.btn--outline { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+.btn--outline:hover { border-color: var(--ink); }
+.btn--copy { background: var(--paper-2); color: var(--ink); border: 1px solid var(--border); padding: .4rem .9rem; font-size: .8rem; border-radius: 6px; white-space: nowrap; }
+.btn--copy:hover { background: var(--paper); border-color: var(--burgundy); color: var(--burgundy); }
+.btn--copied { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+
+@media (max-width: 600px) {
+  .stage { padding: 2rem 1rem 4rem; }
+  .inv__bar { flex-direction: column; align-items: flex-start; }
+  .inv__phone { display: none; }
+}

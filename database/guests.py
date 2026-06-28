@@ -172,6 +172,17 @@ def import_from_google_csv(file_path: str) -> dict:
     return import_guests_from_list(guests)
 
 
+def get_invited_guests_for_wedding(wedding_id: str) -> list[dict]:
+    """Returns all guests for a wedding that were invited (have a group_name assigned)."""
+    response = (
+        db.table("guests")
+        .select("id, full_name, phone, group_name")
+        .eq("wedding_id", wedding_id)
+        .execute()
+    )
+    return [g for g in response.data if g.get("group_name")]
+
+
 def get_guest_stats() -> dict:
     """Returns the total invited guest count and a breakdown of how many are in each group.
     Excludes guests skipped via the swipe classifier (invited=false)."""

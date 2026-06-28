@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from database.dashboard import get_dashboard_data, get_confirmed_guests
+from database.guests import get_invited_guests_for_wedding
+from config.settings import BOT_USERNAME
 
 app = FastAPI(
     title="MAGIYA Dashboard API",
@@ -85,6 +87,18 @@ def dashboard() -> dict:
         return get_dashboard_data()
     except Exception as exc:  # surface DB/connection failures as a clear 502
         raise HTTPException(status_code=502, detail=f"Failed to load dashboard data: {exc}")
+
+
+@app.get("/guests/invited")
+def invited_guests_with_links(wedding_id: str) -> list:
+    """Return invited guests for a wedding with their personal Telegram invite links."""
+    try:
+        guests = get_invited_guests_for_wedding(wedding_id)
+        for g in guests:
+            g["invite_link"] = f"https://t.me/{BOT_USERNAME}?start={g['id']}" if BOT_USERNAME else ""
+        return guests
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load invited guests: {exc}")
 
 
 @app.get("/guests/confirmed", response_model=list[ConfirmedGuest])

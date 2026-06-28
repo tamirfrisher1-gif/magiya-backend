@@ -1,5 +1,7 @@
+import base64
+import io
 from pathlib import Path
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InputFile, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
@@ -60,8 +62,14 @@ async def _send_attendance_prompt(message, wedding: dict | None = None) -> None:
     image_url = w.get("invitation_image_url")
 
     if image_url:
+        if image_url.startswith("data:image"):
+            _, b64data = image_url.split(",", 1)
+            photo_bytes = io.BytesIO(base64.b64decode(b64data))
+            photo_src = InputFile(photo_bytes, filename="invitation.jpg")
+        else:
+            photo_src = image_url
         await message.reply_photo(
-            photo=image_url,
+            photo=photo_src,
             caption=greeting,
             reply_markup=_attendance_keyboard(),
         )

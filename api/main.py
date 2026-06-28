@@ -162,10 +162,10 @@ def invited_guests_with_links(wedding_id: str) -> list:
 
 
 @app.get("/guests/confirmed", response_model=list[ConfirmedGuest])
-def confirmed_guests() -> list:
+def confirmed_guests(wedding_id: str | None = None) -> list:
     """Return confirmed guests (name, group, party_size) for the seating page."""
     try:
-        return get_confirmed_guests()
+        return get_confirmed_guests(wedding_id)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load confirmed guests: {exc}")
 

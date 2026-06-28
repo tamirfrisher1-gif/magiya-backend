@@ -105,7 +105,12 @@ async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             await update.message.reply_text(GUEST_NOT_FOUND_MSG)
             return ConversationHandler.END
 
-        wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
+        wedding_id = guest.get("wedding_id")
+        wedding = get_wedding(wedding_id) if wedding_id else None
+        await update.message.reply_text(
+            f"[DEBUG] guest_id={guest.get('id')[:8]}... wedding_id={wedding_id} "
+            f"bride={wedding.get('bride_name') if wedding else 'NO WEDDING FOUND'}"
+        )
         context.user_data["guest"] = guest
         context.user_data["wedding"] = wedding
         await _send_attendance_prompt(update.message, guest, wedding)

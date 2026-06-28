@@ -354,10 +354,10 @@ $('sendBtn').addEventListener('click', async () => {
   btn.textContent = 'Saving…';
 
   try {
-    if (WEDDING_ID && typeof db !== 'undefined') {
+    if (WEDDING_ID && magiyaSupabase) {
       // Save each group name to the groups table
       for (const cat of categories) {
-        await db.from('groups').upsert(
+        await magiyaSupabase.from('groups').upsert(
           { wedding_id: WEDDING_ID, name: cat },
           { onConflict: 'wedding_id,name' }
         );
@@ -367,7 +367,7 @@ $('sendBtn').addEventListener('click', async () => {
       for (const cat of categories) {
         for (const contact of (assignments[cat] || [])) {
           if (contact.phone) {
-            await db.from('guests')
+            await magiyaSupabase.from('guests')
               .update({ group_name: cat, wedding_id: WEDDING_ID })
               .eq('phone', contact.phone.replace(/[-\s]/g, ''));
           }
@@ -396,8 +396,8 @@ $('restartBtn').addEventListener('click', () => {
 
 /* ---------- Init — load guests from Supabase or use samples ---------- */
 async function loadContacts() {
-  if (WEDDING_ID && typeof db !== 'undefined') {
-    const { data, error } = await db
+  if (WEDDING_ID && magiyaSupabase) {
+    const { data, error } = await magiyaSupabase
       .from('guests')
       .select('full_name, phone')
       .eq('wedding_id', WEDDING_ID);

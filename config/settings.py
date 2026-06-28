@@ -28,6 +28,8 @@ GOOGLE_CLIENT_ID: str = os.environ["GOOGLE_CLIENT_ID"]
 GOOGLE_CLIENT_SECRET: str = os.environ["GOOGLE_CLIENT_SECRET"]
 OPENAI_API_KEY_INVITATION: str = os.getenv("OPENAI_API_KEY_INVITATION", "")
 BOT_USERNAME: str = os.getenv("BOT_USERNAME", "")
+GOOGLE_WEB_CLIENT_ID: str = os.getenv("GOOGLE_WEB_CLIENT_ID", "")
+GOOGLE_WEB_CLIENT_SECRET: str = os.getenv("GOOGLE_WEB_CLIENT_SECRET", "")
 
 GOOGLE_REDIRECT_URI: str = os.getenv(
     "GOOGLE_REDIRECT_URI", "https://magiya-api.onrender.com/auth/google/callback"

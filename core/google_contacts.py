@@ -1,13 +1,13 @@
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from config.settings import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
+from config.settings import GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_SECRET, GOOGLE_REDIRECT_URI
 
 SCOPES = ["https://www.googleapis.com/auth/contacts.readonly"]
 
 _CLIENT_CONFIG = {
     "web": {
-        "client_id": GOOGLE_CLIENT_ID,
-        "client_secret": GOOGLE_CLIENT_SECRET,
+        "client_id": GOOGLE_WEB_CLIENT_ID,
+        "client_secret": GOOGLE_WEB_CLIENT_SECRET,
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
         "token_uri": "https://oauth2.googleapis.com/token",
         "redirect_uris": [GOOGLE_REDIRECT_URI],

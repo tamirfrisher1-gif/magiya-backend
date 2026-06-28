@@ -22,11 +22,11 @@ GUEST_NOT_FOUND_MSG = "מצטערים, לא מצאנו הזמנה במערכת. 
 INVITATION_IMAGE_PATH = Path(__file__).resolve().parent.parent / "assets" / "invitation.png"
 
 
-def _attendance_keyboard() -> InlineKeyboardMarkup:
+def _attendance_keyboard(guest_id: str = "") -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ אני מאשר", callback_data="attend_yes"),
-            InlineKeyboardButton("❌ לא מאשר", callback_data="attend_no"),
+            InlineKeyboardButton("✅ אני מאשר", callback_data=f"attend_yes:{guest_id}"),
+            InlineKeyboardButton("❌ לא מאשר", callback_data=f"attend_no:{guest_id}"),
         ]
     ])
 
@@ -53,13 +53,14 @@ def _dietary_keyboard() -> InlineKeyboardMarkup:
     ])
 
 
-async def _send_attendance_prompt(message, wedding: dict | None = None) -> None:
+async def _send_attendance_prompt(message, guest: dict, wedding: dict | None = None) -> None:
     w = wedding or {}
     name1 = w.get("bride_name") or COUPLE_NAME_1
     name2 = w.get("groom_name") or COUPLE_NAME_2
     default_text = f"שלום! הוזמנת לחתונה של {name1} ו{name2}."
     greeting = w.get("invitation_text") or default_text
     image_url = w.get("invitation_image_url")
+    keyboard = _attendance_keyboard(guest["id"])
 
     if image_url:
         if image_url.startswith("data:image"):
@@ -68,20 +69,12 @@ async def _send_attendance_prompt(message, wedding: dict | None = None) -> None:
             photo_src = InputFile(photo_bytes, filename="invitation.jpg")
         else:
             photo_src = image_url
-        await message.reply_photo(
-            photo=photo_src,
-            caption=greeting,
-            reply_markup=_attendance_keyboard(),
-        )
+        await message.reply_photo(photo=photo_src, caption=greeting, reply_markup=keyboard)
     elif INVITATION_IMAGE_PATH.exists():
         with open(INVITATION_IMAGE_PATH, "rb") as photo:
-            await message.reply_photo(
-                photo=photo,
-                caption=greeting,
-                reply_markup=_attendance_keyboard(),
-            )
+            await message.reply_photo(photo=photo, caption=greeting, reply_markup=keyboard)
     else:
-        await message.reply_text(greeting, reply_markup=_attendance_keyboard())
+        await message.reply_text(greeting, reply_markup=keyboard)
 
 
 async def _advance(query, text: str, reply_markup=None) -> None:
@@ -115,7 +108,7 @@ async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
         context.user_data["guest"] = guest
         context.user_data["wedding"] = wedding
-        await _send_attendance_prompt(update.message, wedding)
+        await _send_attendance_prompt(update.message, guest, wedding)
         return ATTENDANCE
     except Exception as exc:
         await update.message.reply_text(f"[DEBUG] Error: {exc}")
@@ -139,7 +132,7 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
     context.user_data["guest"] = guest
     context.user_data["wedding"] = wedding
-    await _send_attendance_prompt(update.message, wedding)
+    await _send_attendance_prompt(update.message, guest, wedding)
     return ATTENDANCE
 
 
@@ -147,12 +140,20 @@ async def handle_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     query = update.callback_query
     await query.answer()
     try:
-        guest = context.user_data.get("guest")
+        # Guest ID is encoded in callback_data as "attend_yes:GUEST_ID"
+        parts = query.data.split(":", 1)
+        action = parts[0]
+        guest_id = parts[1] if len(parts) > 1 else None
+
+        # Re-fetch guest from DB (survives Render restarts)
+        guest = get_guest_by_id(guest_id) if guest_id else context.user_data.get("guest")
         if not guest:
-            await query.message.reply_text("[DEBUG] Session expired — please tap your invite link again.")
+            await query.message.reply_text("לא נמצאה הזמנה — אנא לחצו שוב על הקישור האישי שלכם.")
             return ConversationHandler.END
 
-        if query.data == "attend_no":
+        context.user_data["guest"] = guest
+
+        if action == "attend_no":
             upsert_rsvp(guest_id=guest["id"], status="declined")
             await _advance(query, "תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
             return ConversationHandler.END
@@ -239,7 +240,7 @@ rsvp_conversation = ConversationHandler(
     ],
     states={
         PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
-        ATTENDANCE: [CallbackQueryHandler(handle_attendance, pattern="^attend_")],
+        ATTENDANCE: [CallbackQueryHandler(handle_attendance, pattern="^attend_(yes|no)")],
         GUEST_COUNT: [CallbackQueryHandler(handle_guest_count, pattern="^count_")],
         DIETARY: [CallbackQueryHandler(handle_dietary, pattern="^diet_")],
     },

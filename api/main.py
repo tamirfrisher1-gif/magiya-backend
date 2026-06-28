@@ -197,8 +197,9 @@ def google_auth_callback(code: str, state: str = "") -> RedirectResponse:
 
 
 class ImageGenRequest(BaseModel):
-    bride_name: str
-    groom_name: str
+    description: str = ""
+    bride_name: str = ""
+    groom_name: str = ""
     wedding_date: str = ""
     style: str = "elegant"
     colors: str = "white and gold"
@@ -210,6 +211,7 @@ async def generate_image(body: ImageGenRequest) -> dict:
     """Generate a wedding invitation image via gpt-image-1; returns a base64 data URL."""
     try:
         data_url = generate_invitation_image_b64(
+            description=body.description,
             bride_name=body.bride_name,
             groom_name=body.groom_name,
             wedding_date=body.wedding_date,

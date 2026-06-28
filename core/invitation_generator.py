@@ -8,19 +8,24 @@ def _client() -> OpenAI:
 
 
 def generate_invitation_image_b64(
-    bride_name: str,
-    groom_name: str,
+    description: str = "",
+    bride_name: str = "",
+    groom_name: str = "",
     wedding_date: str = "",
     style: str = "elegant",
     colors: str = "white and gold",
     elements: str = "",
 ) -> str:
     """Call gpt-image-1 and return a base64 data URL (data:image/png;base64,...)."""
-    date_part = f", wedding date {wedding_date}" if wedding_date else ""
+    if description:
+        subject = description
+    else:
+        date_part = f", wedding date {wedding_date}" if wedding_date else ""
+        subject = f"for {bride_name} and {groom_name}{date_part}"
     elements_part = f" Include: {elements}." if elements else ""
     prompt = (
-        f"A beautiful {style} wedding invitation card for {bride_name} and {groom_name}"
-        f"{date_part}. Color palette: {colors}.{elements_part} "
+        f"A beautiful {style} wedding invitation card {subject}. "
+        f"Color palette: {colors}.{elements_part} "
         "Elegant floral decorations, decorative borders, couple names in stylish calligraphy. "
         "High quality, print-ready, no extra text overlays."
     )

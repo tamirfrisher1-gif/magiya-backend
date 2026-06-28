@@ -221,8 +221,8 @@ loadWeddingCustomisation();
   const input   = $('aiChatInput');
 
   // Chat state
-  let state = 'idle'; // idle → style → colors → elements → generating → preview → feedback
-  let params = { style: '', colors: '', elements: '' };
+  let state = 'idle'; // idle → description → style → colors → generating → preview → feedback
+  let params = { description: '', style: '', colors: '' };
   let weddingInfo = { bride: '', groom: '', date: '' };
 
   // Open / close
@@ -249,42 +249,32 @@ loadWeddingCustomisation();
   }
 
   function handleUserText(text) {
-    if (state === 'elements') {
-      params.elements = text;
-      generate();
-    } else if (state === 'feedback') {
-      params.elements = params.elements ? params.elements + '. ' + text : text;
-      generate();
+    if (state === 'description') {
+      params.description = text;
+      hideInput();
+      askStyle();
     } else if (state === 'colors_free') {
       params.colors = text;
-      askElements();
+      hideInput();
+      generate();
+    } else if (state === 'feedback') {
+      params.description = params.description
+        ? params.description + '. ' + text
+        : text;
+      generate();
     }
   }
 
   // ── Conversation steps ──────────────────────────────────
-  async function startChat() {
-    state = 'loading_info';
-    // Try to pull bride/groom names from Supabase
-    if (WEDDING_ID && magiyaSupabase) {
-      const { data } = await magiyaSupabase
-        .from('weddings')
-        .select('bride_name, groom_name, wedding_date')
-        .eq('id', WEDDING_ID)
-        .maybeSingle();
-      if (data) {
-        weddingInfo.bride = data.bride_name || '';
-        weddingInfo.groom = data.groom_name || '';
-        weddingInfo.date  = data.wedding_date || '';
-      }
-    }
-    const names = (weddingInfo.bride && weddingInfo.groom)
-      ? `for <strong>${weddingInfo.bride} & ${weddingInfo.groom}</strong>`
-      : 'for your wedding';
-    botMsg(`Hi! 💍 I'll create an invitation photo ${names}.<br>Which style do you like?`);
-    showStyleButtons();
+  function startChat() {
+    state = 'description';
+    botMsg('Hi! 💍 Describe your wedding in one line — names, location, date.<br><em>e.g. "Eden &amp; Eyal, Paris, July 10th"</em>');
+    input.placeholder = 'Eden & Eyal, Paris, July 10th…';
+    showInput();
   }
 
-  function showStyleButtons() {
+  function askStyle() {
+    botMsg('Perfect! What style do you prefer?');
     state = 'style';
     setQuick([
       { label: '🌸 Floral',   value: 'floral' },
@@ -299,7 +289,7 @@ loadWeddingCustomisation();
   }
 
   function askColors() {
-    botMsg('Great! What color palette do you prefer?');
+    botMsg('Great! What color palette?');
     state = 'colors';
     setQuick([
       { label: '🤍 White & Gold',        value: 'white and gold' },
@@ -314,20 +304,13 @@ loadWeddingCustomisation();
         showInput();
         addMsg(label, 'user');
         botMsg('Describe your palette (e.g. "sage green and terracotta"):');
+        input.placeholder = 'Your color palette…';
       } else {
         params.colors = val;
         addMsg(label, 'user');
-        askElements();
+        generate();
       }
     });
-  }
-
-  function askElements() {
-    state = 'elements';
-    clearQuick();
-    showInput();
-    botMsg('Any special elements to include? (e.g. orange blossoms, sea, olive branches…)<br><em>Press Enter to skip.</em>');
-    input.placeholder = 'Flowers, symbols, decor… (optional)';
   }
 
   async function generate() {
@@ -336,20 +319,14 @@ loadWeddingCustomisation();
     clearQuick();
     const typingEl = addTyping();
 
-    const bride = weddingInfo.bride || 'Bride';
-    const groom = weddingInfo.groom || 'Groom';
-
     try {
       const res = await fetch(`${API}/invitations/generate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bride_name: bride,
-          groom_name: groom,
-          wedding_date: weddingInfo.date,
+          description: params.description,
           style: params.style,
           colors: params.colors,
-          elements: params.elements,
         }),
       });
       typingEl.remove();
@@ -394,8 +371,8 @@ loadWeddingCustomisation();
       state = 'feedback';
       clearQuick();
       showInput();
-      input.placeholder = 'E.g. more flowers, lighter background…';
-      botMsg('Describe what you want to change:');
+      input.placeholder = 'E.g. more flowers, lighter background, add doves…';
+      botMsg('What would you like to change?');
     });
 
     msgs.appendChild(wrap);

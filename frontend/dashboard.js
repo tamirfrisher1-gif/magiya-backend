@@ -13,6 +13,7 @@
 
 const $ = (id) => document.getElementById(id);
 const API = (typeof MAGIYA_API_BASE !== 'undefined') ? MAGIYA_API_BASE : '';
+const WEDDING_ID = localStorage.getItem('magiya_wedding_id') || null;
 
 const STATUS = {
   confirmed: { label: 'Coming',         color: '#6e1423', badge: 'badge--coming' },
@@ -43,7 +44,10 @@ async function load() {
   const btn = $('refreshBtn');
   if (btn) { btn.disabled = true; btn.textContent = '↻ Refreshing…'; }
   try {
-    const res = await fetch(`${API}/dashboard`, { headers: { Accept: 'application/json' } });
+    const url = WEDDING_ID
+      ? `${API}/dashboard?wedding_id=${encodeURIComponent(WEDDING_ID)}`
+      : `${API}/dashboard`;
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
     if (!res.ok) throw new Error(`API responded ${res.status}`);
     render(await res.json());
   } catch (err) {

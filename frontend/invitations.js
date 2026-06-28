@@ -48,42 +48,38 @@ async function loadWeddingCustomisation() {
 
 $('pickPhotoBtn').addEventListener('click', () => $('invPhoto').click());
 
-$('invPhoto').addEventListener('change', async (e) => {
+$('invPhoto').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  // Show local preview immediately (before upload)
-  const localUrl = URL.createObjectURL(file);
-  showPreview(localUrl);
-
-  if (!WEDDING_ID || !magiyaSupabase) {
-    $('photoStatus').textContent = '⚠ Sign up first.';
-    return;
-  }
-
-  $('photoStatus').textContent = 'Uploading…';
+  $('photoStatus').textContent = 'Processing…';
   $('pickPhotoBtn').disabled = true;
 
-  const ext = file.name.split('.').pop().toLowerCase();
-  const path = `${WEDDING_ID}/invitation.${ext}`;
+  const img = new Image();
+  const objectUrl = URL.createObjectURL(file);
 
-  const { data: uploadData, error: uploadError } = await magiyaSupabase.storage
-    .from('wedding-assets')
-    .upload(path, file, { upsert: true });
+  img.onload = () => {
+    URL.revokeObjectURL(objectUrl);
+    const MAX = 800;
+    let w = img.width, h = img.height;
+    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    showPreview(dataUrl);
+    $('invImageUrl').value = dataUrl;
+    $('photoStatus').textContent = '✓ Photo ready';
+    $('pickPhotoBtn').disabled = false;
+  };
 
-  $('pickPhotoBtn').disabled = false;
+  img.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    $('photoStatus').textContent = '⚠ Could not load image';
+    $('pickPhotoBtn').disabled = false;
+  };
 
-  if (uploadError) {
-    $('photoStatus').textContent = `⚠ ${uploadError.message}`;
-    return;
-  }
-
-  const { data: { publicUrl } } = magiyaSupabase.storage
-    .from('wedding-assets')
-    .getPublicUrl(path);
-
-  $('invImageUrl').value = publicUrl;
-  $('photoStatus').textContent = '✓ Photo ready';
+  img.src = objectUrl;
 });
 
 $('removePhotoBtn').addEventListener('click', () => {

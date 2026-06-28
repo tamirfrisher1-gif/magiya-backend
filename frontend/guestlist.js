@@ -375,7 +375,7 @@ $('sendBtn').addEventListener('click', async () => {
       }
 
       btn.textContent = '✅ Saved!';
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+      setTimeout(() => { window.location.href = 'invitations.html'; }, 1000);
     } else {
       // No Supabase session — just show success for demo
       btn.textContent = '✅ Saved!';

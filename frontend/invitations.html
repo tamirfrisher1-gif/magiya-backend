@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAGIYA — Send Invitations</title>
+  <meta name="description" content="Your personalised invitation links — send each one to a guest via WhatsApp so they can RSVP through the Telegram bot." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600&family=Archivo:wght@400;500;600&family=Archivo+Black&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="invitations.css" />
+</head>
+<body>
+  <header class="bar">
+    <a href="index.html" class="bar__logo">MAGIYA</a>
+    <span class="bar__crumb">Send Invitations</span>
+    <a href="index.html" class="bar__back">← Home</a>
+  </header>
+
+  <main class="stage">
+    <div class="inv__head">
+      <span class="kicker">Step 03 · Invitations</span>
+      <h1 class="inv__title">Your invitations <em>are ready.</em></h1>
+      <p class="inv__sub" id="invSub">Send each personal link to your guest via WhatsApp — when they tap it, the MAGIYA bot opens and guides them through their RSVP.</p>
+    </div>
+
+    <div class="inv__bar">
+      <span class="inv__count" id="invCount">—</span>
+      <div class="inv__actions">
+        <button class="btn btn--outline" id="copyAllBtn">Copy all links</button>
+        <a href="dashboard.html" class="btn btn--primary">Go to Dashboard →</a>
+      </div>
+    </div>
+
+    <div class="banner banner--info" id="banner" hidden></div>
+
+    <div class="inv__table-wrap">
+      <table class="inv__table" id="invTable">
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Group</th>
+            <th>Phone</th>
+            <th>Invitation link</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="invBody">
+          <tr><td colspan="5" class="inv__loading">Loading your guests…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="api-config.js"></script>
+  <script src="invitations.js"></script>
+</body>
+</html>

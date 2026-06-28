@@ -10,6 +10,7 @@ from telegram.ext import (
 )
 from database.guests import get_guest_by_phone, get_guest_by_id
 from database.rsvps import upsert_rsvp
+from database.weddings import get_wedding
 from core.wedding_config import COUPLE_NAME_1, COUPLE_NAME_2
 
 # Conversation states
@@ -50,8 +51,10 @@ def _dietary_keyboard() -> InlineKeyboardMarkup:
     ])
 
 
-async def _send_attendance_prompt(message) -> None:
-    greeting = f"שלום! הוזמנת לחתונה של {COUPLE_NAME_1} ו{COUPLE_NAME_2}."
+async def _send_attendance_prompt(message, wedding: dict | None = None) -> None:
+    name1 = (wedding or {}).get("bride_name") or COUPLE_NAME_1
+    name2 = (wedding or {}).get("groom_name") or COUPLE_NAME_2
+    greeting = f"שלום! הוזמנת לחתונה של {name1} ו{name2}."
 
     if INVITATION_IMAGE_PATH.exists():
         with open(INVITATION_IMAGE_PATH, "rb") as photo:
@@ -91,8 +94,10 @@ async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         await update.message.reply_text(GUEST_NOT_FOUND_MSG)
         return ConversationHandler.END
 
+    wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
     context.user_data["guest"] = guest
-    await _send_attendance_prompt(update.message)
+    context.user_data["wedding"] = wedding
+    await _send_attendance_prompt(update.message, wedding)
     return ATTENDANCE
 
 
@@ -110,8 +115,10 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         await update.message.reply_text(GUEST_NOT_FOUND_MSG)
         return ConversationHandler.END
 
+    wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
     context.user_data["guest"] = guest
-    await _send_attendance_prompt(update.message)
+    context.user_data["wedding"] = wedding
+    await _send_attendance_prompt(update.message, wedding)
     return ATTENDANCE
 
 

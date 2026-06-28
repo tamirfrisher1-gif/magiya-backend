@@ -98,24 +98,28 @@ async def _advance(query, text: str, reply_markup=None) -> None:
 async def start_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Entry point for /start. With a deep-link payload (?start=<guest_id>) it jumps
     straight into the RSVP flow; without one it just shows a generic welcome."""
-    if not context.args:
-        await update.message.reply_text(
-            "ברוכים הבאים ל-MAGIYA! 💍\nלאישור הגעה הקלידו /rsvp"
-        )
+    try:
+        if not context.args:
+            await update.message.reply_text(
+                "ברוכים הבאים ל-MAGIYA! 💍\nלאישור הגעה הקלידו /rsvp"
+            )
+            return ConversationHandler.END
+
+        guest_id = context.args[0]
+        guest = get_guest_by_id(guest_id)
+
+        if not guest:
+            await update.message.reply_text(GUEST_NOT_FOUND_MSG)
+            return ConversationHandler.END
+
+        wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
+        context.user_data["guest"] = guest
+        context.user_data["wedding"] = wedding
+        await _send_attendance_prompt(update.message, wedding)
+        return ATTENDANCE
+    except Exception as exc:
+        await update.message.reply_text(f"[DEBUG] Error: {exc}")
         return ConversationHandler.END
-
-    guest_id = context.args[0]
-    guest = get_guest_by_id(guest_id)
-
-    if not guest:
-        await update.message.reply_text(GUEST_NOT_FOUND_MSG)
-        return ConversationHandler.END
-
-    wedding = get_wedding(guest.get("wedding_id", "")) if guest.get("wedding_id") else None
-    context.user_data["guest"] = guest
-    context.user_data["wedding"] = wedding
-    await _send_attendance_prompt(update.message, wedding)
-    return ATTENDANCE
 
 
 async def rsvp_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

@@ -84,9 +84,14 @@ body { font-family: var(--font-sans); background: var(--paper); color: var(--ink
 .field__hint { font-size: .78rem; color: var(--muted); }
 .field textarea, .field input[type="url"] { padding: .75rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: .9rem; background: var(--paper); color: var(--ink); resize: vertical; transition: border-color .15s; }
 .field textarea:focus, .field input[type="url"]:focus { outline: none; border-color: var(--burgundy); }
-.customize__preview { margin-top: .5rem; }
-.customize__preview-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: .5rem; }
+.photo-pick { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.photo-pick__status { font-size: .85rem; color: var(--gold); }
+
+.customize__preview { margin-top: .5rem; display: flex; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.customize__preview-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: .5rem; width: 100%; }
 .customize__preview img { max-width: 280px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border); object-fit: cover; }
+.btn--remove { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: .35rem .8rem; font-size: .8rem; border-radius: 6px; align-self: flex-end; }
+.btn--remove:hover { color: #c0392b; border-color: #c0392b; }
 .customize__actions { display: flex; align-items: center; gap: 1rem; }
 .customize__status { font-size: .85rem; color: var(--gold); }
 

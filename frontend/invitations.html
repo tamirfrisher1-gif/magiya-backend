@@ -18,72 +18,81 @@
   </header>
 
   <main class="stage">
-    <div class="inv__head">
-      <span class="kicker">Step 03 · Invitations</span>
-      <h1 class="inv__title">Your invitations <em>are ready.</em></h1>
-      <p class="inv__sub">Customise your message below, then send each personal link to your guest via WhatsApp. When they tap it, the MAGIYA bot opens with your message and guides them through their RSVP.</p>
-    </div>
+    <!-- ===== Step 1: Customise ===== -->
+    <div class="step" id="step1">
+      <div class="inv__head">
+        <span class="kicker">Step 1 of 2 · Customise</span>
+        <h1 class="inv__title">Prepare your <em>invitation.</em></h1>
+        <p class="inv__sub">Write your message and add a photo. The Telegram bot will send this to each guest when they tap their personal link.</p>
+      </div>
 
-    <!-- ===== Customise invitation message ===== -->
-    <section class="customize">
-      <h2 class="customize__title">Customise your invitation message</h2>
-      <p class="customize__sub">This is the text the bot will send to each guest when they open their personal link.</p>
-
-      <div class="customize__form">
-        <div class="field">
-          <label for="invText">Message text</label>
-          <textarea id="invText" rows="4" placeholder="e.g. Hello! You're invited to our wedding. We'd love to celebrate with you 💍"></textarea>
-        </div>
-
-        <div class="field">
-          <label>Invitation photo <span class="field__opt">(optional)</span></label>
-          <div class="photo-pick">
-            <button type="button" class="btn btn--outline" id="pickPhotoBtn">Choose photo from computer</button>
-            <input id="invPhoto" type="file" accept="image/*" hidden />
-            <span class="photo-pick__status" id="photoStatus"></span>
+      <section class="customize">
+        <div class="customize__form">
+          <div class="field">
+            <label for="invText">Message text</label>
+            <textarea id="invText" rows="4" placeholder="e.g. Hello! You're invited to our wedding. We'd love to celebrate with you 💍"></textarea>
           </div>
-          <input id="invImageUrl" type="hidden" />
-          <span class="field__hint">Choose a photo from your computer. The bot will send it with your message.</span>
-        </div>
 
-        <div class="customize__preview" id="previewBox" hidden>
-          <span class="customize__preview-label">Preview</span>
-          <img id="previewImg" src="" alt="Invitation photo preview" />
-          <button type="button" class="btn btn--remove" id="removePhotoBtn">Remove photo</button>
-        </div>
+          <div class="field">
+            <label>Invitation photo <span class="field__opt">(optional)</span></label>
+            <div class="photo-pick">
+              <button type="button" class="btn btn--outline" id="pickPhotoBtn">Choose photo from computer</button>
+              <input id="invPhoto" type="file" accept="image/*" hidden />
+              <span class="photo-pick__status" id="photoStatus"></span>
+            </div>
+            <input id="invImageUrl" type="hidden" />
+            <span class="field__hint">Choose a photo from your computer. The bot will send it with your message.</span>
+          </div>
 
-        <div class="customize__actions">
-          <button class="btn btn--primary" id="saveCustomBtn">Save message</button>
-          <span class="customize__status" id="customStatus"></span>
-        </div>
-      </div>
-    </section>
+          <div class="customize__preview" id="previewBox" hidden>
+            <span class="customize__preview-label">Preview</span>
+            <img id="previewImg" src="" alt="Invitation photo preview" />
+            <button type="button" class="btn btn--remove" id="removePhotoBtn">Remove photo</button>
+          </div>
 
-    <div class="inv__bar">
-      <span class="inv__count" id="invCount">—</span>
-      <div class="inv__actions">
-        <button class="btn btn--outline" id="copyAllBtn">Copy all links</button>
-        <a href="dashboard.html" class="btn btn--primary">Go to Dashboard →</a>
-      </div>
+          <div class="customize__actions">
+            <button class="btn btn--primary" id="saveCustomBtn">Save &amp; see my links →</button>
+            <span class="customize__status" id="customStatus"></span>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div class="banner banner--info" id="banner" hidden></div>
+    <!-- ===== Step 2: Links (hidden until message saved) ===== -->
+    <div class="step" id="step2" hidden>
+      <div class="inv__head">
+        <span class="kicker">Step 2 of 2 · Send</span>
+        <h1 class="inv__title">Send your <em>links.</em></h1>
+        <p class="inv__sub">Copy each personal link and send it via WhatsApp. When a guest taps it, the bot opens with your message.</p>
+        <button class="btn btn--outline" id="editMsgBtn" style="margin-top:1rem">← Edit message</button>
+      </div>
 
-    <div class="inv__table-wrap">
-      <table class="inv__table" id="invTable">
-        <thead>
-          <tr>
-            <th>Guest</th>
-            <th>Group</th>
-            <th>Phone</th>
-            <th>Invitation link</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="invBody">
-          <tr><td colspan="5" class="inv__loading">Loading your guests…</td></tr>
-        </tbody>
-      </table>
+      <div class="inv__bar">
+        <span class="inv__count" id="invCount">—</span>
+        <div class="inv__actions">
+          <button class="btn btn--outline" id="copyAllBtn">Copy all links</button>
+          <a href="dashboard.html" class="btn btn--primary">Go to Dashboard →</a>
+        </div>
+      </div>
+
+      <div class="banner banner--info" id="banner" hidden></div>
+
+      <div class="inv__table-wrap">
+        <table class="inv__table" id="invTable">
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Group</th>
+              <th>Phone</th>
+              <th>Invitation link</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="invBody">
+            <tr><td colspan="5" class="inv__loading">Loading your guests…</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 

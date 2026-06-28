@@ -52,11 +52,20 @@ def _dietary_keyboard() -> InlineKeyboardMarkup:
 
 
 async def _send_attendance_prompt(message, wedding: dict | None = None) -> None:
-    name1 = (wedding or {}).get("bride_name") or COUPLE_NAME_1
-    name2 = (wedding or {}).get("groom_name") or COUPLE_NAME_2
-    greeting = f"שלום! הוזמנת לחתונה של {name1} ו{name2}."
+    w = wedding or {}
+    name1 = w.get("bride_name") or COUPLE_NAME_1
+    name2 = w.get("groom_name") or COUPLE_NAME_2
+    default_text = f"שלום! הוזמנת לחתונה של {name1} ו{name2}."
+    greeting = w.get("invitation_text") or default_text
+    image_url = w.get("invitation_image_url")
 
-    if INVITATION_IMAGE_PATH.exists():
+    if image_url:
+        await message.reply_photo(
+            photo=image_url,
+            caption=greeting,
+            reply_markup=_attendance_keyboard(),
+        )
+    elif INVITATION_IMAGE_PATH.exists():
         with open(INVITATION_IMAGE_PATH, "rb") as photo:
             await message.reply_photo(
                 photo=photo,

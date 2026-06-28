@@ -21,8 +21,37 @@
     <div class="inv__head">
       <span class="kicker">Step 03 · Invitations</span>
       <h1 class="inv__title">Your invitations <em>are ready.</em></h1>
-      <p class="inv__sub" id="invSub">Send each personal link to your guest via WhatsApp — when they tap it, the MAGIYA bot opens and guides them through their RSVP.</p>
+      <p class="inv__sub">Customise your message below, then send each personal link to your guest via WhatsApp. When they tap it, the MAGIYA bot opens with your message and guides them through their RSVP.</p>
     </div>
+
+    <!-- ===== Customise invitation message ===== -->
+    <section class="customize">
+      <h2 class="customize__title">Customise your invitation message</h2>
+      <p class="customize__sub">This is the text the bot will send to each guest when they open their personal link.</p>
+
+      <div class="customize__form">
+        <div class="field">
+          <label for="invText">Message text</label>
+          <textarea id="invText" rows="4" placeholder="e.g. Hello! You're invited to our wedding. We'd love to celebrate with you 💍"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="invImageUrl">Photo URL <span class="field__opt">(optional)</span></label>
+          <input id="invImageUrl" type="url" placeholder="https://... paste a link to your invitation image" />
+          <span class="field__hint">Paste a direct image link (jpg/png). The bot will send this photo along with your message.</span>
+        </div>
+
+        <div class="customize__preview" id="previewBox" hidden>
+          <span class="customize__preview-label">Preview</span>
+          <img id="previewImg" src="" alt="Invitation photo preview" />
+        </div>
+
+        <div class="customize__actions">
+          <button class="btn btn--primary" id="saveCustomBtn">Save message</button>
+          <span class="customize__status" id="customStatus"></span>
+        </div>
+      </div>
+    </section>
 
     <div class="inv__bar">
       <span class="inv__count" id="invCount">—</span>
@@ -52,6 +81,8 @@
     </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="api-config.js"></script>
   <script src="invitations.js"></script>
 </body>

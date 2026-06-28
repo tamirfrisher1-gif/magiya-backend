@@ -73,6 +73,23 @@ body { font-family: var(--font-sans); background: var(--paper); color: var(--ink
 .btn--copy:hover { background: var(--paper); border-color: var(--burgundy); color: var(--burgundy); }
 .btn--copied { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
 
+/* ---- Customise section ---- */
+.customize { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; }
+.customize__title { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; margin-bottom: .4rem; }
+.customize__sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.5rem; }
+.customize__form { display: flex; flex-direction: column; gap: 1.25rem; }
+.field { display: flex; flex-direction: column; gap: .4rem; }
+.field label { font-size: .85rem; font-weight: 600; }
+.field__opt { font-weight: 400; color: var(--muted); }
+.field__hint { font-size: .78rem; color: var(--muted); }
+.field textarea, .field input[type="url"] { padding: .75rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: var(--font-sans); font-size: .9rem; background: var(--paper); color: var(--ink); resize: vertical; transition: border-color .15s; }
+.field textarea:focus, .field input[type="url"]:focus { outline: none; border-color: var(--burgundy); }
+.customize__preview { margin-top: .5rem; }
+.customize__preview-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: .5rem; }
+.customize__preview img { max-width: 280px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border); object-fit: cover; }
+.customize__actions { display: flex; align-items: center; gap: 1rem; }
+.customize__status { font-size: .85rem; color: var(--gold); }
+
 @media (max-width: 600px) {
   .stage { padding: 2rem 1rem 4rem; }
   .inv__bar { flex-direction: column; align-items: flex-start; }

@@ -146,15 +146,22 @@ async def receive_phone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def handle_attendance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    guest = context.user_data["guest"]
+    try:
+        guest = context.user_data.get("guest")
+        if not guest:
+            await query.message.reply_text("[DEBUG] Session expired — please tap your invite link again.")
+            return ConversationHandler.END
 
-    if query.data == "attend_no":
-        upsert_rsvp(guest_id=guest["id"], status="declined")
-        await _advance(query, "תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
+        if query.data == "attend_no":
+            upsert_rsvp(guest_id=guest["id"], status="declined")
+            await _advance(query, "תודה שעדכנת אותנו. נשמח לראותך בהזדמנות אחרת! 💔")
+            return ConversationHandler.END
+
+        await _advance(query, "כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
+        return GUEST_COUNT
+    except Exception as exc:
+        await query.message.reply_text(f"[DEBUG] handle_attendance error: {exc}")
         return ConversationHandler.END
-
-    await _advance(query, "כמה אנשים תהיו?", reply_markup=_guest_count_keyboard())
-    return GUEST_COUNT
 
 
 async def handle_guest_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

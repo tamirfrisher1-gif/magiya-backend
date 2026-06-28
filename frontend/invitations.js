@@ -1,8 +1,5 @@
 /* ===========================================================
    MAGIYA — Send Invitations
-   Fetches invited guests from the API and shows each one's
-   personal Telegram deep-link so the couple can paste it
-   into WhatsApp.
    =========================================================== */
 
 const WEDDING_ID = localStorage.getItem('magiya_wedding_id') || null;
@@ -22,6 +19,66 @@ function groupColor(name) {
 
 let allGuests = [];
 
+/* =========================================================
+   CUSTOMISE INVITATION MESSAGE
+   ========================================================= */
+async function loadWeddingCustomisation() {
+  if (!WEDDING_ID || !magiyaSupabase) return;
+  const { data } = await magiyaSupabase
+    .from('weddings')
+    .select('bride_name, groom_name, invitation_text, invitation_image_url')
+    .eq('id', WEDDING_ID)
+    .maybeSingle();
+  if (!data) return;
+
+  const defaultText = `שלום! הוזמנת לחתונה של ${data.bride_name} ו${data.groom_name}. אנו שמחים להזמינך לחגוג איתנו את היום המיוחד שלנו 💍`;
+  $('invText').value = data.invitation_text || defaultText;
+  if (data.invitation_image_url) {
+    $('invImageUrl').value = data.invitation_image_url;
+    showPreview(data.invitation_image_url);
+  }
+}
+
+$('invImageUrl').addEventListener('input', () => {
+  const url = $('invImageUrl').value.trim();
+  if (url) showPreview(url); else $('previewBox').hidden = true;
+});
+
+function showPreview(url) {
+  $('previewImg').src = url;
+  $('previewBox').hidden = false;
+}
+
+$('saveCustomBtn').addEventListener('click', async () => {
+  const btn = $('saveCustomBtn');
+  const status = $('customStatus');
+  if (!WEDDING_ID || !magiyaSupabase) {
+    status.textContent = '⚠ Sign up first to save your message.';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'Saving…';
+
+  const { error } = await magiyaSupabase
+    .from('weddings')
+    .update({
+      invitation_text: $('invText').value.trim() || null,
+      invitation_image_url: $('invImageUrl').value.trim() || null,
+    })
+    .eq('id', WEDDING_ID);
+
+  btn.disabled = false;
+  if (error) {
+    status.textContent = '❌ Could not save: ' + error.message;
+  } else {
+    status.textContent = '✓ Saved!';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }
+});
+
+/* =========================================================
+   GUEST LIST + LINKS
+   ========================================================= */
 async function load() {
   if (!WEDDING_ID) {
     showBanner('⚠ No wedding found. <a href="signup.html">Sign up first</a> to generate your invitation links.', 'warn');
@@ -37,7 +94,7 @@ async function load() {
     allGuests = await res.json();
     render(allGuests);
   } catch (err) {
-    showBanner(`⚠ Couldn't load guests: ${escapeHtml(err.message)}. Make sure the API is running.`, 'warn');
+    showBanner(`⚠ Couldn't load guests: ${escapeHtml(err.message)}.`, 'warn');
     $('invBody').innerHTML = '<tr><td colspan="5" class="inv__loading">Failed to load — try refreshing.</td></tr>';
   }
 }
@@ -58,7 +115,6 @@ function render(guests) {
     const copyBtn = hasLink
       ? `<button class="btn btn--copy" data-link="${escapeHtml(g.invite_link)}" title="Copy link">Copy</button>`
       : '';
-
     return `<tr>
       <td><span class="inv__name">${escapeHtml(g.full_name || 'Unknown')}</span></td>
       <td><span class="inv__badge" style="background:${groupColor(g.group_name)}">${escapeHtml(g.group_name || 'Unassigned')}</span></td>
@@ -69,7 +125,6 @@ function render(guests) {
   }).join('');
 
   $('invBody').innerHTML = rows;
-
   $('invBody').querySelectorAll('.btn--copy').forEach((btn) => {
     btn.addEventListener('click', () => copyToClipboard(btn.dataset.link, btn));
   });
@@ -81,21 +136,12 @@ function copyToClipboard(text, btn) {
     btn.textContent = 'Copied!';
     btn.classList.add('btn--copied');
     setTimeout(() => { btn.textContent = orig; btn.classList.remove('btn--copied'); }, 1500);
-  }).catch(() => {
-    prompt('Copy this link:', text);
-  });
+  }).catch(() => { prompt('Copy this link:', text); });
 }
 
 $('copyAllBtn').addEventListener('click', () => {
-  const links = allGuests
-    .filter((g) => g.invite_link)
-    .map((g) => `${g.full_name}: ${g.invite_link}`)
-    .join('\n');
-
-  if (!links) {
-    alert('No links to copy — set BOT_USERNAME on Render first.');
-    return;
-  }
+  const links = allGuests.filter((g) => g.invite_link).map((g) => `${g.full_name}: ${g.invite_link}`).join('\n');
+  if (!links) { alert('No links to copy — set BOT_USERNAME on Render first.'); return; }
   navigator.clipboard.writeText(links).then(() => {
     const btn = $('copyAllBtn');
     btn.textContent = 'Copied all!';
@@ -111,3 +157,4 @@ function showBanner(html, kind) {
 }
 
 load();
+loadWeddingCustomisation();

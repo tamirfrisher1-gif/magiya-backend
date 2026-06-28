@@ -402,7 +402,7 @@ $('sendBtn').addEventListener('click', async () => {
               full_name: contact.name,
               group_name: cat,
               wedding_id: WEDDING_ID,
-            }, { onConflict: 'phone' });
+            }, { onConflict: 'phone,wedding_id' });
           }
         }
       }

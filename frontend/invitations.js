@@ -278,9 +278,9 @@ loadWeddingCustomisation();
       }
     }
     const names = (weddingInfo.bride && weddingInfo.groom)
-      ? `pour <strong>${weddingInfo.bride} & ${weddingInfo.groom}</strong>`
-      : 'pour votre mariage';
-    botMsg(`Bonjour ! 💍 Je vais créer une photo d'invitation ${names}.<br>Quel style vous attire ?`);
+      ? `for <strong>${weddingInfo.bride} & ${weddingInfo.groom}</strong>`
+      : 'for your wedding';
+    botMsg(`Hi! 💍 I'll create an invitation photo ${names}.<br>Which style do you like?`);
     showStyleButtons();
   }
 
@@ -299,21 +299,21 @@ loadWeddingCustomisation();
   }
 
   function askColors() {
-    botMsg('Super ! Quelle palette de couleurs ?');
+    botMsg('Great! What color palette do you prefer?');
     state = 'colors';
     setQuick([
-      { label: '🤍 Blanc & Or',         value: 'white and gold' },
-      { label: '🌸 Rose poudré & Ivoire', value: 'blush pink and ivory' },
-      { label: '🍷 Bordeaux & Crème',    value: 'burgundy and cream' },
-      { label: '🌊 Bleu marine & Argent', value: 'navy and silver' },
-      { label: '✏️ Autre…',              value: '__free__' },
+      { label: '🤍 White & Gold',        value: 'white and gold' },
+      { label: '🌸 Blush Pink & Ivory',  value: 'blush pink and ivory' },
+      { label: '🍷 Burgundy & Cream',    value: 'burgundy and cream' },
+      { label: '🌊 Navy & Silver',       value: 'navy and silver' },
+      { label: '✏️ Other…',              value: '__free__' },
     ], (val, label) => {
       if (val === '__free__') {
         state = 'colors_free';
         clearQuick();
         showInput();
         addMsg(label, 'user');
-        botMsg('Décrivez votre palette (ex: "vert sauge et terracotta") :');
+        botMsg('Describe your palette (e.g. "sage green and terracotta"):');
       } else {
         params.colors = val;
         addMsg(label, 'user');
@@ -326,8 +326,8 @@ loadWeddingCustomisation();
     state = 'elements';
     clearQuick();
     showInput();
-    botMsg('Un élément particulier à inclure ? (ex: fleurs d\'oranger, mer, oliviers…)<br><em>Appuyez Entrée pour passer.</em>');
-    input.placeholder = 'Fleurs, symboles, décor… (optionnel)';
+    botMsg('Any special elements to include? (e.g. orange blossoms, sea, olive branches…)<br><em>Press Enter to skip.</em>');
+    input.placeholder = 'Flowers, symbols, decor… (optional)';
   }
 
   async function generate() {
@@ -358,7 +358,7 @@ loadWeddingCustomisation();
       showImagePreview(image);
     } catch (e) {
       typingEl.remove();
-      botMsg('⚠️ Erreur lors de la génération. Vérifiez que la clé OpenAI est configurée sur Render.');
+      botMsg('⚠️ Generation failed. Make sure the OpenAI API key is set on Render.');
       state = 'idle';
     }
   }
@@ -376,26 +376,26 @@ loadWeddingCustomisation();
     // "Utiliser" button
     const useBtn = document.createElement('button');
     useBtn.className = 'ai-use-btn';
-    useBtn.textContent = '✅ Utiliser cette photo';
+    useBtn.textContent = '✅ Use this photo';
     useBtn.addEventListener('click', () => {
       showPreview(dataUrl);
       $('invImageUrl').value = dataUrl;
-      $('photoStatus').textContent = '✓ Photo générée par IA';
+      $('photoStatus').textContent = '✓ AI-generated photo';
       panel.hidden = true;
       $('aiChatBtn').hidden = false;
-      botMsg('Photo ajoutée ! Cliquez sur <strong>Save & see my links</strong> pour continuer. 🎉');
+      botMsg('Photo added! Click <strong>Save & see my links</strong> to continue. 🎉');
     });
 
-    // "Regénérer" button
+    // "Modify" button
     const regenBtn = document.createElement('button');
     regenBtn.className = 'ai-regen-btn';
-    regenBtn.textContent = '🔄 Modifier';
+    regenBtn.textContent = '🔄 Modify';
     regenBtn.addEventListener('click', () => {
       state = 'feedback';
       clearQuick();
       showInput();
-      input.placeholder = 'Ex: plus de fleurs, fond plus clair…';
-      botMsg('Décrivez ce que vous voulez changer :');
+      input.placeholder = 'E.g. more flowers, lighter background…';
+      botMsg('Describe what you want to change:');
     });
 
     msgs.appendChild(wrap);

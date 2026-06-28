@@ -393,13 +393,16 @@ $('sendBtn').addEventListener('click', async () => {
         );
       }
 
-      // Update group_name for each invited guest in Supabase
+      // Upsert each invited guest with their group and wedding
       for (const cat of categories) {
         for (const contact of (assignments[cat] || [])) {
           if (contact.phone) {
-            await magiyaSupabase.from('guests')
-              .update({ group_name: cat, wedding_id: WEDDING_ID })
-              .eq('phone', contact.phone.replace(/[-\s]/g, ''));
+            await magiyaSupabase.from('guests').upsert({
+              phone: contact.phone.replace(/[-\s]/g, ''),
+              full_name: contact.name,
+              group_name: cat,
+              wedding_id: WEDDING_ID,
+            }, { onConflict: 'phone' });
           }
         }
       }

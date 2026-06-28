@@ -209,3 +209,244 @@ function showBanner(html, kind) {
 }
 
 loadWeddingCustomisation();
+
+/* =========================================================
+   AI CHAT WIDGET — Invitation Image Generator
+   ========================================================= */
+(function initAIChat() {
+  const panel   = $('aiChatPanel');
+  const msgs    = $('aiChatMessages');
+  const quick   = $('aiChatQuick');
+  const inputRow = $('aiChatInputRow');
+  const input   = $('aiChatInput');
+
+  // Chat state
+  let state = 'idle'; // idle → style → colors → elements → generating → preview → feedback
+  let params = { style: '', colors: '', elements: '' };
+  let weddingInfo = { bride: '', groom: '', date: '' };
+
+  // Open / close
+  $('aiChatBtn').addEventListener('click', () => {
+    panel.hidden = false;
+    $('aiChatBtn').hidden = true;
+    if (state === 'idle') startChat();
+  });
+  $('aiChatClose').addEventListener('click', () => {
+    panel.hidden = true;
+    $('aiChatBtn').hidden = false;
+  });
+
+  // Send on Enter
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendText(); });
+  $('aiChatSend').addEventListener('click', sendText);
+
+  function sendText() {
+    const val = input.value.trim();
+    if (!val) return;
+    input.value = '';
+    addMsg(val, 'user');
+    handleUserText(val);
+  }
+
+  function handleUserText(text) {
+    if (state === 'elements') {
+      params.elements = text;
+      generate();
+    } else if (state === 'feedback') {
+      params.elements = params.elements ? params.elements + '. ' + text : text;
+      generate();
+    } else if (state === 'colors_free') {
+      params.colors = text;
+      askElements();
+    }
+  }
+
+  // ── Conversation steps ──────────────────────────────────
+  async function startChat() {
+    state = 'loading_info';
+    // Try to pull bride/groom names from Supabase
+    if (WEDDING_ID && magiyaSupabase) {
+      const { data } = await magiyaSupabase
+        .from('weddings')
+        .select('bride_name, groom_name, wedding_date')
+        .eq('id', WEDDING_ID)
+        .maybeSingle();
+      if (data) {
+        weddingInfo.bride = data.bride_name || '';
+        weddingInfo.groom = data.groom_name || '';
+        weddingInfo.date  = data.wedding_date || '';
+      }
+    }
+    const names = (weddingInfo.bride && weddingInfo.groom)
+      ? `pour <strong>${weddingInfo.bride} & ${weddingInfo.groom}</strong>`
+      : 'pour votre mariage';
+    botMsg(`Bonjour ! 💍 Je vais créer une photo d'invitation ${names}.<br>Quel style vous attire ?`);
+    showStyleButtons();
+  }
+
+  function showStyleButtons() {
+    state = 'style';
+    setQuick([
+      { label: '🌸 Floral',   value: 'floral' },
+      { label: '✨ Élégant',  value: 'elegant' },
+      { label: '🌿 Rustique', value: 'rustic' },
+      { label: '◼ Moderne',   value: 'modern' },
+    ], (val, label) => {
+      params.style = val;
+      addMsg(label, 'user');
+      askColors();
+    });
+  }
+
+  function askColors() {
+    botMsg('Super ! Quelle palette de couleurs ?');
+    state = 'colors';
+    setQuick([
+      { label: '🤍 Blanc & Or',         value: 'white and gold' },
+      { label: '🌸 Rose poudré & Ivoire', value: 'blush pink and ivory' },
+      { label: '🍷 Bordeaux & Crème',    value: 'burgundy and cream' },
+      { label: '🌊 Bleu marine & Argent', value: 'navy and silver' },
+      { label: '✏️ Autre…',              value: '__free__' },
+    ], (val, label) => {
+      if (val === '__free__') {
+        state = 'colors_free';
+        clearQuick();
+        showInput();
+        addMsg(label, 'user');
+        botMsg('Décrivez votre palette (ex: "vert sauge et terracotta") :');
+      } else {
+        params.colors = val;
+        addMsg(label, 'user');
+        askElements();
+      }
+    });
+  }
+
+  function askElements() {
+    state = 'elements';
+    clearQuick();
+    showInput();
+    botMsg('Un élément particulier à inclure ? (ex: fleurs d\'oranger, mer, oliviers…)<br><em>Appuyez Entrée pour passer.</em>');
+    input.placeholder = 'Fleurs, symboles, décor… (optionnel)';
+  }
+
+  async function generate() {
+    state = 'generating';
+    hideInput();
+    clearQuick();
+    const typingEl = addTyping();
+
+    const bride = weddingInfo.bride || 'Bride';
+    const groom = weddingInfo.groom || 'Groom';
+
+    try {
+      const res = await fetch(`${API}/invitations/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bride_name: bride,
+          groom_name: groom,
+          wedding_date: weddingInfo.date,
+          style: params.style,
+          colors: params.colors,
+          elements: params.elements,
+        }),
+      });
+      typingEl.remove();
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const { image } = await res.json();
+      showImagePreview(image);
+    } catch (e) {
+      typingEl.remove();
+      botMsg('⚠️ Erreur lors de la génération. Vérifiez que la clé OpenAI est configurée sur Render.');
+      state = 'idle';
+    }
+  }
+
+  function showImagePreview(dataUrl) {
+    state = 'preview';
+    // Image bubble
+    const wrap = document.createElement('div');
+    wrap.className = 'ai-msg ai-msg--img';
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = 'Invitation générée';
+    wrap.appendChild(img);
+
+    // "Utiliser" button
+    const useBtn = document.createElement('button');
+    useBtn.className = 'ai-use-btn';
+    useBtn.textContent = '✅ Utiliser cette photo';
+    useBtn.addEventListener('click', () => {
+      showPreview(dataUrl);
+      $('invImageUrl').value = dataUrl;
+      $('photoStatus').textContent = '✓ Photo générée par IA';
+      panel.hidden = true;
+      $('aiChatBtn').hidden = false;
+      botMsg('Photo ajoutée ! Cliquez sur <strong>Save & see my links</strong> pour continuer. 🎉');
+    });
+
+    // "Regénérer" button
+    const regenBtn = document.createElement('button');
+    regenBtn.className = 'ai-regen-btn';
+    regenBtn.textContent = '🔄 Modifier';
+    regenBtn.addEventListener('click', () => {
+      state = 'feedback';
+      clearQuick();
+      showInput();
+      input.placeholder = 'Ex: plus de fleurs, fond plus clair…';
+      botMsg('Décrivez ce que vous voulez changer :');
+    });
+
+    msgs.appendChild(wrap);
+    msgs.appendChild(useBtn);
+    msgs.appendChild(regenBtn);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  // ── Helpers ─────────────────────────────────────────────
+  function botMsg(html) {
+    const el = document.createElement('div');
+    el.className = 'ai-msg ai-msg--bot';
+    el.innerHTML = html;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+    return el;
+  }
+
+  function addMsg(text, who) {
+    const el = document.createElement('div');
+    el.className = `ai-msg ai-msg--${who}`;
+    el.textContent = text;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addTyping() {
+    const el = document.createElement('div');
+    el.className = 'ai-typing';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+    return el;
+  }
+
+  function setQuick(options, onClick) {
+    quick.innerHTML = '';
+    inputRow.hidden = true;
+    options.forEach(({ label, value }) => {
+      const btn = document.createElement('button');
+      btn.className = 'ai-quick-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        quick.innerHTML = '';
+        onClick(value, label);
+      });
+      quick.appendChild(btn);
+    });
+  }
+
+  function clearQuick() { quick.innerHTML = ''; }
+  function showInput()  { inputRow.hidden = false; input.focus(); }
+  function hideInput()  { inputRow.hidden = true; }
+})();

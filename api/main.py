@@ -21,6 +21,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 from database.dashboard import get_dashboard_data, get_confirmed_guests
 from database.guests import import_guests_from_list, get_invited_guests_for_wedding
 from core.google_contacts import get_auth_url, fetch_google_contacts, contacts_to_guests
+from core.invitation_generator import generate_invitation_image_b64
 from config.settings import FRONTEND_GUESTLIST_URL, BOT_USERNAME, TELEGRAM_BOT_TOKEN
 from bot_handlers.commands import ping, help_command
 from bot_handlers.rsvp_flow import rsvp_conversation
@@ -77,7 +78,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -193,3 +194,29 @@ def google_auth_callback(code: str, state: str = "") -> RedirectResponse:
         params = {"error": str(exc)}
 
     return RedirectResponse(f"{FRONTEND_GUESTLIST_URL}?{urlencode(params)}")
+
+
+class ImageGenRequest(BaseModel):
+    bride_name: str
+    groom_name: str
+    wedding_date: str = ""
+    style: str = "elegant"
+    colors: str = "white and gold"
+    elements: str = ""
+
+
+@app.post("/invitations/generate-image")
+async def generate_image(body: ImageGenRequest) -> dict:
+    """Generate a wedding invitation image via gpt-image-1; returns a base64 data URL."""
+    try:
+        data_url = generate_invitation_image_b64(
+            bride_name=body.bride_name,
+            groom_name=body.groom_name,
+            wedding_date=body.wedding_date,
+            style=body.style,
+            colors=body.colors,
+            elements=body.elements,
+        )
+        return {"image": data_url}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Image generation failed: {exc}")

@@ -85,10 +85,10 @@ def health() -> dict:
 
 
 @app.get("/dashboard", response_model=DashboardResponse)
-def dashboard() -> dict:
-    """Return the full aggregated dashboard payload."""
+def dashboard(wedding_id: str | None = None) -> dict:
+    """Return aggregated dashboard payload, filtered to a specific wedding when wedding_id is given."""
     try:
-        return get_dashboard_data()
+        return get_dashboard_data(wedding_id)
     except Exception as exc:  # surface DB/connection failures as a clear 502
         raise HTTPException(status_code=502, detail=f"Failed to load dashboard data: {exc}")
 

@@ -4,9 +4,11 @@ from database.client import db
 from core.rsvp_logic import validate_phone
 
 
-def get_all_guests() -> list[dict]:
-    response = db.table("guests").select("*").execute()
-    return response.data
+def get_all_guests(wedding_id: str | None = None) -> list[dict]:
+    query = db.table("guests").select("*")
+    if wedding_id:
+        query = query.eq("wedding_id", wedding_id)
+    return query.execute().data
 
 
 def get_guest_by_phone(phone: str) -> Optional[dict]:

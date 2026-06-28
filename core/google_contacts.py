@@ -57,6 +57,14 @@ def fetch_google_contacts(code: str) -> list[dict]:
     return contacts
 
 
+def _clean_phone(raw: str) -> str:
+    """Normalises any phone number to Israeli domestic format (05XXXXXXXX)."""
+    digits = raw.replace("+", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
+    if digits.startswith("972"):
+        digits = "0" + digits[3:]
+    return digits
+
+
 def contacts_to_guests(contacts: list[dict]) -> list[dict]:
     """Converts raw Google People API contacts into the guest format for import_guests_from_list.
     Only keeps name and phone — the couple will classify groups themselves via the UI."""
@@ -69,7 +77,8 @@ def contacts_to_guests(contacts: list[dict]) -> list[dict]:
             continue
 
         full_name = names[0].get("displayName", "Unknown") if names else "Unknown"
-        phone = phones[0].get("canonicalForm") or phones[0].get("value", "")
+        raw_phone = phones[0].get("canonicalForm") or phones[0].get("value", "")
+        phone = _clean_phone(raw_phone)
 
         guests.append({
             "full_name": full_name,

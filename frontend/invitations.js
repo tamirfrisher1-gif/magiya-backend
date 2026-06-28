@@ -38,6 +38,12 @@ async function loadWeddingCustomisation() {
     showPreview(data.invitation_image_url);
     $('photoStatus').textContent = '✓ Photo saved';
   }
+
+  // If message was already saved before, skip to step 2
+  if (data.invitation_text) {
+    showStep(2);
+    load();
+  }
 }
 
 $('pickPhotoBtn').addEventListener('click', () => $('invPhoto').click());
@@ -114,10 +120,17 @@ $('saveCustomBtn').addEventListener('click', async () => {
   if (error) {
     status.textContent = '❌ Could not save: ' + error.message;
   } else {
-    status.textContent = '✓ Saved!';
-    setTimeout(() => { status.textContent = ''; }, 3000);
+    showStep(2);
+    load();
   }
 });
+
+$('editMsgBtn').addEventListener('click', () => showStep(1));
+
+function showStep(n) {
+  $('step1').hidden = n !== 1;
+  $('step2').hidden = n !== 2;
+}
 
 /* =========================================================
    GUEST LIST + LINKS
@@ -199,5 +212,4 @@ function showBanner(html, kind) {
   el.hidden = false;
 }
 
-load();
 loadWeddingCustomisation();

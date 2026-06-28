@@ -58,7 +58,7 @@ def classify_guests(decisions: list[dict]) -> dict:
 
 def upsert_guest(data: dict) -> dict:
     """Insert or update a guest. `data` must include `phone` as the unique key."""
-    response = db.table("guests").upsert(data, on_conflict="phone").execute()
+    response = db.table("guests").upsert(data, on_conflict="phone,wedding_id").execute()
     return response.data[0]
 
 
@@ -90,7 +90,7 @@ def import_guests_from_list(guests: list[dict]) -> dict:
         }
         clean["phone"] = phone
 
-        db.table("guests").upsert(clean, on_conflict="phone").execute()
+        db.table("guests").upsert(clean, on_conflict="phone,wedding_id").execute()
         inserted += 1
 
     return {"inserted": inserted, "skipped": skipped}

@@ -98,6 +98,14 @@ class StatusBreakdown(BaseModel):
     pending: int
 
 
+class DietaryBreakdown(BaseModel):
+    vegetarian: int
+    vegan: int
+    kosher: int
+    celiac: int
+    none: int
+
+
 class GroupRow(BaseModel):
     group: str
     invited: int
@@ -116,6 +124,7 @@ class RecentUpdate(BaseModel):
 class DashboardResponse(BaseModel):
     summary: Summary
     status_breakdown: StatusBreakdown
+    dietary_breakdown: DietaryBreakdown
     by_group: list[GroupRow]
     recent_updates: list[RecentUpdate]
 

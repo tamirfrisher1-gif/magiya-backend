@@ -7,6 +7,7 @@
    Contract (see api/README.md):
    { summary:{invited,confirmed,declined,no_response,expected_headcount},
      status_breakdown:{confirmed,declined,pending},
+     dietary_breakdown:{vegetarian,vegan,kosher,celiac,none},
      by_group:[{group,invited,confirmed,expected}],
      recent_updates:[{name,group,status,party_size,responded_at}] }
    =========================================================== */
@@ -35,9 +36,19 @@ function fmtTime(iso) {
 const EMPTY = {
   summary: { invited: 0, confirmed: 0, declined: 0, no_response: 0, expected_headcount: 0 },
   status_breakdown: { confirmed: 0, declined: 0, pending: 0 },
+  dietary_breakdown: { vegetarian: 0, vegan: 0, kosher: 0, celiac: 0, none: 0 },
   by_group: [],
   recent_updates: [],
 };
+
+// Ordered list of meal categories shown on the dashboard, with display labels.
+const DIET = [
+  { k: 'none', label: 'Regular' },
+  { k: 'vegetarian', label: 'Vegetarian' },
+  { k: 'vegan', label: 'Vegan' },
+  { k: 'kosher', label: 'Glatt kosher' },
+  { k: 'celiac', label: 'Celiac / gluten-free' },
+];
 
 /* ---------- Load ---------- */
 async function load() {
@@ -92,6 +103,9 @@ function render(data) {
   // Donut
   renderDonut(sb, invited, s.confirmed || 0);
 
+  // Food preferences
+  renderDiet(data.dietary_breakdown || EMPTY.dietary_breakdown);
+
   // By group
   const rows = (data.by_group || []).map((g) =>
     `<tr><td><span class="g-dot" style="background:${groupColor(g.group)}"></span>${escapeHtml(g.group)}</td>` +
@@ -114,6 +128,16 @@ function render(data) {
     </div>`;
   }).join('');
   $('feed').innerHTML = feed || `<p style="color:var(--muted)">No responses yet.</p>`;
+}
+
+function renderDiet(db) {
+  const total = DIET.reduce((sum, d) => sum + (db[d.k] || 0), 0);
+  $('diet').innerHTML = DIET.map((d) => {
+    const v = db[d.k] || 0;
+    const pct = total ? Math.round((v / total) * 100) : 0;
+    return `<div class="stat"><div class="stat__num">${v}</div>` +
+      `<div class="stat__label">${d.label} · ${pct}%</div></div>`;
+  }).join('');
 }
 
 function renderDonut(sb, invited, centerVal) {

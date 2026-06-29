@@ -4,7 +4,14 @@ Unit tests for the dashboard aggregation (pure, no DB) and the FastAPI endpoint
 """
 from fastapi.testclient import TestClient
 
-from core.dashboard import build_dashboard, build_confirmed_guests, UNASSIGNED_GROUP, RECENT_LIMIT
+from core.dashboard import (
+    build_dashboard,
+    build_confirmed_guests,
+    _parse_dietary,
+    UNASSIGNED_GROUP,
+    RECENT_LIMIT,
+    DIET_KEYS,
+)
 from api.main import app
 
 client = TestClient(app)
@@ -102,6 +109,63 @@ def test_unknown_status_is_pending():
     assert dash["summary"]["no_response"] == 1
 
 
+# --- dietary breakdown ---------------------------------------------------
+
+def test_parse_dietary_single_person():
+    assert _parse_dietary({"dietary_restrictions": "צמחוני"}, 1) == ["vegetarian"]
+    assert _parse_dietary({"dietary_restrictions": "טבעוני"}, 1) == ["vegan"]
+    assert _parse_dietary({"dietary_restrictions": "גלאט"}, 1) == ["kosher"]
+    assert _parse_dietary({"dietary_restrictions": "צליאקי"}, 1) == ["celiac"]
+
+
+def test_parse_dietary_none_when_missing():
+    # the bot stores None when 'אין' was chosen for a party of one
+    assert _parse_dietary({"dietary_restrictions": None}, 1) == ["none"]
+    assert _parse_dietary({}, 1) == ["none"]
+
+
+def test_parse_dietary_multi_person():
+    raw = "אדם 1: צמחוני\nאדם 2: אין\nאדם 3: טבעוני"
+    assert _parse_dietary({"dietary_restrictions": raw}, 3) == ["vegetarian", "none", "vegan"]
+
+
+def test_parse_dietary_pads_and_truncates_to_party_size():
+    # fewer recorded lines than the party size -> remainder counts as 'none'
+    assert _parse_dietary({"dietary_restrictions": "אדם 1: גלאט"}, 3) == ["kosher", "none", "none"]
+    # more lines than party size -> truncated
+    raw = "אדם 1: צמחוני\nאדם 2: טבעוני"
+    assert _parse_dietary({"dietary_restrictions": raw}, 1) == ["vegetarian"]
+
+
+def test_parse_dietary_unknown_label_is_none():
+    assert _parse_dietary({"dietary_restrictions": "פיצה"}, 1) == ["none"]
+
+
+def test_dietary_breakdown_sums_to_expected_headcount():
+    guests = [
+        {"id": "g1", "full_name": "A", "group_name": "x"},
+        {"id": "g2", "full_name": "B", "group_name": "x"},
+        {"id": "g3", "full_name": "C", "group_name": "x"},
+    ]
+    rsvps = [
+        {"guest_id": "g1", "status": "confirmed", "party_size": 1, "dietary_restrictions": "צמחוני"},
+        {"guest_id": "g2", "status": "confirmed", "party_size": 2,
+         "dietary_restrictions": "אדם 1: גלאט\nאדם 2: טבעוני"},
+        {"guest_id": "g3", "status": "declined", "party_size": 1, "dietary_restrictions": "צליאקי"},
+    ]
+    dash = build_dashboard(guests, rsvps)
+    db = dash["dietary_breakdown"]
+    assert db == {"vegetarian": 1, "vegan": 1, "kosher": 1, "celiac": 0, "none": 0}
+    # declined guests are excluded; per-person counts match expected headcount
+    assert sum(db.values()) == dash["summary"]["expected_headcount"] == 3
+
+
+def test_dietary_breakdown_keys_always_present():
+    dash = build_dashboard([], [])
+    assert set(dash["dietary_breakdown"].keys()) == set(DIET_KEYS)
+    assert all(v == 0 for v in dash["dietary_breakdown"].values())
+
+
 # --- build_confirmed_guests ----------------------------------------------
 
 def test_confirmed_guests_only_confirmed():
@@ -128,12 +192,15 @@ def test_health_endpoint():
 def test_dashboard_endpoint(monkeypatch):
     guests, rsvps = _sample()
     canned = build_dashboard(guests, rsvps)
-    # patch where the endpoint looks it up (imported into api.main)
-    monkeypatch.setattr("api.main.get_dashboard_data", lambda: canned)
+    # patch where the endpoint looks it up (imported into api.main); the endpoint
+    # passes a wedding_id arg, so the stub must accept it.
+    monkeypatch.setattr("api.main.get_dashboard_data", lambda *args, **kwargs: canned)
 
     res = client.get("/dashboard")
     assert res.status_code == 200
     body = res.json()
-    assert set(body.keys()) == {"summary", "status_breakdown", "by_group", "recent_updates"}
+    assert set(body.keys()) == {
+        "summary", "status_breakdown", "dietary_breakdown", "by_group", "recent_updates",
+    }
     assert body["summary"]["invited"] == 5
     assert body["summary"]["expected_headcount"] == 5

@@ -35,5 +35,5 @@ GOOGLE_REDIRECT_URI: str = os.getenv(
     "GOOGLE_REDIRECT_URI", "https://magiya-api.onrender.com/auth/google/callback"
 )
 FRONTEND_GUESTLIST_URL: str = os.getenv(
-    "FRONTEND_GUESTLIST_URL", "https://phenomenal-dragon-c76a9d.netlify.app/guestlist.html"
+    "FRONTEND_GUESTLIST_URL", "https://magiya-frontend.onrender.com/guestlist.html"
 )

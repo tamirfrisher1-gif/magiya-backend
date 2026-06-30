@@ -19,7 +19,13 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler
 
 from database.dashboard import get_dashboard_data, get_confirmed_guests
-from database.guests import import_guests_from_list, get_invited_guests_for_wedding
+from database.guests import (
+    import_guests_from_list,
+    get_invited_guests_for_wedding,
+    get_guest_in_wedding,
+    add_manual_guest,
+    get_wedding_groups,
+)
 from core.google_contacts import get_auth_url, fetch_google_contacts, contacts_to_guests
 from core.invitation_generator import generate_invitation_image_b64
 from config.settings import FRONTEND_GUESTLIST_URL, BOT_USERNAME, TELEGRAM_BOT_TOKEN
@@ -168,6 +174,58 @@ def invited_guests_with_links(wedding_id: str) -> list:
         return guests
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load invited guests: {exc}")
+
+
+class NewGuest(BaseModel):
+    wedding_id: str
+    full_name: str
+    phone: str
+    group_name: str
+
+
+def _invite_link(guest_id: str) -> str:
+    return f"https://t.me/{BOT_USERNAME}?start={guest_id}" if BOT_USERNAME else ""
+
+
+@app.get("/groups")
+def wedding_groups(wedding_id: str) -> list[str]:
+    """All group names defined for a wedding (for the manual-add dropdown)."""
+    try:
+        return get_wedding_groups(wedding_id)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load groups: {exc}")
+
+
+@app.post("/guests")
+def add_guest(body: NewGuest) -> dict:
+    """Manually add a single guest (not from Google import) and return their record
+    with a freshly-generated personal Telegram invite link.
+
+    If the phone is already in this wedding we refuse to overwrite and return 409 with
+    the existing guest's link, so a genuine new add always mints a brand-new link."""
+    try:
+        existing = get_guest_in_wedding(body.wedding_id, body.phone)
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "message": f"{existing.get('full_name') or 'This guest'} is already in your list.",
+                    "guest": {**existing, "invite_link": _invite_link(existing["id"])},
+                },
+            )
+        guest = add_manual_guest(
+            wedding_id=body.wedding_id,
+            full_name=body.full_name,
+            phone=body.phone,
+            group_name=body.group_name,
+        )
+        return {**guest, "invite_link": _invite_link(guest["id"])}
+    except ValueError as exc:  # invalid / missing input
+        raise HTTPException(status_code=400, detail=str(exc))
+    except HTTPException:
+        raise
+    except Exception as exc:  # DB/connection failure
+        raise HTTPException(status_code=502, detail=f"Failed to add guest: {exc}")
 
 
 @app.get("/guests/confirmed", response_model=list[ConfirmedGuest])

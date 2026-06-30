@@ -115,3 +115,39 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); li
   .feed__row { grid-template-columns: 1fr auto; }
   .feed__time { display: none; }
 }
+
+/* ===== Add a guest (manual) ===== */
+.addguest__row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+.addguest__field { display: flex; flex-direction: column; gap: 0.35rem; }
+.addguest__field > span {
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--muted);
+}
+.addguest__field input,
+.addguest__field select {
+  font-family: var(--sans); font-size: 0.95rem; color: var(--ink);
+  background: var(--paper); border: 2px solid var(--ink);
+  padding: 0.6rem 0.7rem; border-radius: 2px;
+}
+.addguest__field input:focus,
+.addguest__field select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.addguest #agSubmit { white-space: nowrap; height: 2.7rem; }
+.addguest__msg { margin: 0.8rem 0 0; font-size: 0.9rem; min-height: 1.1rem; }
+.addguest__result {
+  margin-top: 1rem; padding: 1rem 1.1rem;
+  border: 2px solid var(--accent); background: var(--paper); border-radius: 4px;
+}
+.addguest__ok { font-weight: 600; color: var(--accent); margin-bottom: 0.6rem; }
+.addguest__link { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+.addguest__link code {
+  font-size: 0.9rem; background: var(--paper-2); padding: 0.45rem 0.6rem;
+  border-radius: 3px; word-break: break-all; flex: 1 1 280px;
+}
+@media (max-width: 760px) {
+  .addguest__row { grid-template-columns: 1fr; }
+}

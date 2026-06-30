@@ -174,6 +174,60 @@ def import_from_google_csv(file_path: str) -> dict:
     return import_guests_from_list(guests)
 
 
+def get_wedding_groups(wedding_id: str) -> list[str]:
+    """Returns every group name defined for a wedding (from the `groups` table),
+    including groups that have no guests yet — so the manual-add dropdown lists all
+    of the couple's groups, not only the ones that already contain people."""
+    rows = db.table("groups").select("name").eq("wedding_id", wedding_id).execute().data
+    names = [r.get("name") for r in rows if r.get("name")]
+    return sorted(set(names))
+
+
+def get_guest_in_wedding(wedding_id: str, phone: str) -> Optional[dict]:
+    """Returns the guest with this phone in the given wedding, or None.
+
+    Phone is normalized first so a lookup matches regardless of how it was typed.
+    Scoped to the wedding because phone is only unique per (phone, wedding_id)."""
+    normalized = _clean_phone(str(phone or ""))
+    response = (
+        db.table("guests")
+        .select("*")
+        .eq("wedding_id", wedding_id)
+        .eq("phone", normalized)
+        .maybe_single()
+        .execute()
+    )
+    return response.data if response is not None else None
+
+
+def add_manual_guest(wedding_id: str, full_name: str, phone: str, group_name: str) -> dict:
+    """Adds a single guest typed in by hand (not from a Google import).
+
+    Normalizes the phone to Israeli format and validates it, then inserts a new
+    guest row (invited) and returns it — including the fresh `id` used to build the
+    guest's personal Telegram invite link. Raises ValueError on invalid input."""
+    if not wedding_id:
+        raise ValueError("wedding_id is required")
+    name = (full_name or "").strip()
+    if not name:
+        raise ValueError("full_name is required")
+    group = (group_name or "").strip()
+    if not group:
+        raise ValueError("group_name is required")
+
+    normalized = _clean_phone(str(phone or ""))
+    if not validate_phone(normalized):
+        raise ValueError("Invalid phone number — expected an Israeli mobile like 0501234567")
+
+    return upsert_guest({
+        "full_name": name,
+        "phone": normalized,
+        "group_name": group,
+        "wedding_id": wedding_id,
+        "invited": True,
+    })
+
+
 def get_invited_guests_for_wedding(wedding_id: str) -> list[dict]:
     """Returns all guests for a wedding that were invited (have a group_name assigned)."""
     response = (

@@ -166,7 +166,109 @@ function renderDonut(sb, invited, centerVal) {
   }).join('');
 }
 
+/* ---------- Add a guest manually ---------- */
+async function loadGroups() {
+  const sel = $('agGroup');
+  if (!sel || !WEDDING_ID) return;
+  try {
+    const res = await fetch(`${API}/groups?wedding_id=${encodeURIComponent(WEDDING_ID)}`,
+      { headers: { Accept: 'application/json' } });
+    const groups = res.ok ? await res.json() : [];
+    populateGroupSelect(Array.isArray(groups) ? groups : []);
+  } catch {
+    populateGroupSelect([]);
+  }
+}
+
+function populateGroupSelect(groups) {
+  const sel = $('agGroup');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = groups.length
+    ? groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('')
+    : `<option value="" disabled selected>No groups yet — build your guestlist first</option>`;
+  if (current && groups.includes(current)) sel.value = current;
+}
+
+function agSetMsg(text, isError) {
+  const el = $('agMsg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = isError ? '#b3261e' : 'var(--muted)';
+}
+
+async function handleAddGuest(e) {
+  e.preventDefault();
+  const btn = $('agSubmit');
+  const result = $('agResult');
+  result.hidden = true; result.innerHTML = '';
+  agSetMsg('');
+
+  if (!WEDDING_ID) {
+    agSetMsg('No wedding selected — open this dashboard from your wedding to add guests.', true);
+    return;
+  }
+  const full_name = $('agName').value.trim();
+  const phone = $('agPhone').value.trim();
+  const group_name = $('agGroup').value;
+  if (!full_name || !phone || !group_name) {
+    agSetMsg('Please fill in name, phone and group.', true);
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try {
+    const res = await fetch(`${API}/guests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ wedding_id: WEDDING_ID, full_name, phone, group_name }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      if (data.invite_link) {
+        showInviteResult(`✓ ${escapeHtml(full_name)} added.`, data.invite_link);
+      } else {
+        agSetMsg(`✓ ${full_name} added — but no invite link was generated here (the bot username isn't configured locally; links work on the live site).`, false);
+      }
+      $('agName').value = ''; $('agPhone').value = '';
+      load(); // refresh counts / by-group
+    } else if (res.status === 409) {
+      const d = data.detail || {};
+      showInviteResult(escapeHtml(d.message || 'This guest is already in your list.'),
+        d.guest && d.guest.invite_link, true);
+    } else if (res.status === 400) {
+      agSetMsg(typeof data.detail === 'string' ? data.detail : 'Invalid input.', true);
+    } else {
+      agSetMsg(`Couldn't add guest (error ${res.status}).`, true);
+    }
+  } catch (err) {
+    agSetMsg(`Network error: ${err.message || err}`, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Add & create link';
+  }
+}
+
+function showInviteResult(label, link, isWarning) {
+  const result = $('agResult');
+  if (!link) { agSetMsg(label, isWarning); return; }
+  result.hidden = false;
+  result.innerHTML =
+    `<div class="addguest__ok">${label}</div>` +
+    `<div class="addguest__link"><code id="agLink">${escapeHtml(link)}</code>` +
+    `<button type="button" class="btn btn--outline" id="agCopy">Copy link</button></div>`;
+  const copyBtn = $('agCopy');
+  copyBtn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(link); copyBtn.textContent = 'Copied!'; }
+    catch { copyBtn.textContent = 'Copy failed'; }
+    setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1500);
+  });
+}
+
 /* ---------- Init ---------- */
 const refreshBtn = $('refreshBtn');
 if (refreshBtn) refreshBtn.addEventListener('click', load);
+const addGuestForm = $('addGuestForm');
+if (addGuestForm) addGuestForm.addEventListener('submit', handleAddGuest);
+loadGroups();
 load();

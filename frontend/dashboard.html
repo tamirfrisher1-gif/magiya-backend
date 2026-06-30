@@ -84,6 +84,31 @@
       <p class="panel__sub">The latest responses we received from your guests.</p>
       <div class="feed" id="feed"></div>
     </section>
+
+    <!-- ===== Add a guest manually (bottom of page) ===== -->
+    <section class="panel" id="addGuestPanel">
+      <h2 class="panel__title">Add a guest</h2>
+      <p class="panel__sub">Manually add someone who wasn't in your Google contacts. They'll get their own personal Telegram invite link.</p>
+      <form class="addguest" id="addGuestForm">
+        <div class="addguest__row">
+          <label class="addguest__field">
+            <span>Full name</span>
+            <input type="text" id="agName" autocomplete="off" placeholder="e.g. Maya Cohen" required />
+          </label>
+          <label class="addguest__field">
+            <span>Phone</span>
+            <input type="tel" id="agPhone" autocomplete="off" placeholder="e.g. 052-000-0000" required />
+          </label>
+          <label class="addguest__field">
+            <span>Group</span>
+            <select id="agGroup" required></select>
+          </label>
+          <button type="submit" class="btn btn--primary" id="agSubmit">Add &amp; create link</button>
+        </div>
+        <p class="addguest__msg" id="agMsg"></p>
+        <div class="addguest__result" id="agResult" hidden></div>
+      </form>
+    </section>
   </main>
 
   <script src="api-config.js"></script>

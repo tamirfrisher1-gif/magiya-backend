@@ -66,6 +66,11 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); li
 .btn--big { width: 100%; background: var(--accent); color: var(--paper); box-shadow: 5px 5px 0 var(--ink); font-size: 1.05rem; padding: 1.05rem 2rem; }
 .btn--big:hover:not(:disabled) { background: var(--accent-2); transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--ink); }
 .btn--big:disabled { opacity: 0.55; cursor: progress; box-shadow: 5px 5px 0 var(--muted); }
+.btn--outline { width: 100%; background: transparent; color: var(--accent); border: 2px solid var(--accent); font-size: 1.05rem; padding: 1.05rem 2rem; }
+.btn--outline:hover { background: var(--accent); color: var(--paper); }
+
+/* ---------- Sign-in action buttons ---------- */
+.signin-actions { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 
 /* ---------- Status ---------- */
 .status { margin-top: 1rem; font-size: 0.95rem; min-height: 1.2em; }

@@ -157,8 +157,10 @@ panelSignin.addEventListener('submit', async (e) => {
   }
 
   rememberWedding(data);
-  setStatus(status, `✓ Welcome back, ${data.bride_name} & ${data.groom_name}!`, 'ok');
-  setTimeout(() => { window.location.href = 'guestlist.html'; }, 900);
+  setStatus(status, `✓ Welcome back, ${data.bride_name} & ${data.groom_name}! Where would you like to go?`, 'ok');
+
+  const signinActions = $('signinActions');
+  if (signinActions) signinActions.hidden = false;
 });
 
 /* ---------- Init ---------- */
